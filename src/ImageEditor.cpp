@@ -1,10 +1,12 @@
 #include "ImageEditor.h"
 #include "ImageLoader.h"
 #include "Toolbar.h"
-#include "UiComponents.h"
 #include "tinyfiledialogs.h"
 #include <iostream>
 #include <algorithm> // For std::clamp and std::max
+#include <sys/stat.h>
+#include <ctime>
+#include <sstream>
 #include <SDL.h>     // Include SDL for SDL_Event
 #include <opencv2/opencv.hpp> // Include OpenCV for image processing
 #include <implot.h>  // Include ImPlot for plotting histograms
@@ -85,8 +87,8 @@ void ImageEditor::RenderImageEditor() {
             ImGui::EndTabItem();
         }
 
-        if (ImGui::BeginTabItem("Image Info")) {
-            DisplayExifInfo();
+        if (ImGui::BeginTabItem("Info")) {
+            DisplayImageInfo();
             ImGui::EndTabItem();
         }
         ImGui::EndTabBar();
@@ -129,8 +131,11 @@ void ImageEditor::LoadImage(const char* filename) {
 
     // Load the image as OpenGL texture
     image_texture = LoadImageFromFile(filename, &image_width, &image_height);
-}
 
+    // Extract image information
+    GetImageInfo();
+    GetFileInfo(filename);
+}
 
 void ImageEditor::SaveImage() {
     // Implement save functionality
@@ -179,13 +184,15 @@ void ImageEditor::RenderToolbar() {
     RenderToolbarUI(active_tool);
 }
 
-void ImageEditor::DisplayExifInfo() {
-    ImGui::Text("Size: 1920x1080");
-    ImGui::Text("Date Time: 2024-09-01 12:00:00");
-    ImGui::Text("Camera: Canon EOS 5D Mark IV");
-    ImGui::Text("Focal Length: 50mm");
-    ImGui::Text("Aperture: f/1.8");
-    ImGui::Text("ISO: 100");
+void ImageEditor::DisplayImageInfo() {
+    if (image_info.empty()) {
+        ImGui::Text("No image information available.");
+        return;
+    }
+
+    for (const auto& info : image_info) {
+        ImGui::Text("%s", info.c_str());
+    }
 }
 
 void ImageEditor::CalculateHistogram() {
@@ -247,5 +254,47 @@ void ImageEditor::CalculateHistogram() {
         ImPlot::PopStyleColor();
 
         ImPlot::EndPlot();
+    }
+}
+
+void ImageEditor::GetImageInfo() {
+    if (image.empty()) {
+        std::cerr << "No image loaded." << std::endl;
+        return;
+    }
+
+    image_info.clear();
+    image_info.push_back("Width: " + std::to_string(image.cols));
+    image_info.push_back("Height: " + std::to_string(image.rows));
+    image_info.push_back("Channels: " + std::to_string(image.channels()));
+    image_info.push_back("Number of Pixels: " + std::to_string(image.total()));
+    image_info.push_back("Image Size: " + std::to_string(image.total() * image.elemSize()) + " bytes");
+}
+
+
+void ImageEditor::GetFileInfo(const char* filename) {
+    struct stat file_stat;
+    if (stat(filename, &file_stat) == 0) {
+        // File size
+        image_info.push_back("File Size: " + std::to_string(file_stat.st_size) + " bytes");
+
+        // File type (extension)
+        std::string file_name_str(filename);
+        std::string file_extension = file_name_str.substr(file_name_str.find_last_of(".") + 1);
+        image_info.push_back("File Type: " + file_extension);
+
+        // Creation time
+        std::time_t creation_time = file_stat.st_ctime;
+        std::stringstream creation_time_str;
+        creation_time_str << std::asctime(std::localtime(&creation_time));
+        image_info.push_back("Created: " + creation_time_str.str());
+
+        // Modification time
+        std::time_t modification_time = file_stat.st_mtime;
+        std::stringstream modification_time_str;
+        modification_time_str << std::asctime(std::localtime(&modification_time));
+        image_info.push_back("Modified: " + modification_time_str.str());
+    } else {
+        std::cerr << "Error: Could not retrieve file information for: " << filename << std::endl;
     }
 }

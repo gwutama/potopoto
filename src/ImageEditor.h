@@ -25,16 +25,18 @@ private:
     void RenderImageEditor();    // Render the image editor GUI
     void HandleImageViewer();    // Handle the image viewer's logic
     void RenderToolbar();        // Render the toolbar
-    void DisplayExifInfo();      // Display EXIF information
+    void DisplayImageInfo();      // Display EXIF information
     void CalculateHistogram();   // Calculate and display histogram
+    void GetImageInfo();         // Get image information
+    void GetFileInfo(const char* filename); // Get file information
 
     GLuint image_texture;
     int image_width, image_height;
     float zoom;
     ImVec2 image_offset;
     ActiveTool active_tool;
-
     cv::Mat image; // OpenCV image
+    std::vector<std::string> image_info;
 };
 
 #endif //POTOPOTO_IMAGEEDITOR_H
