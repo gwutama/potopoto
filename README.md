@@ -1,2 +1,2 @@
 # potopoto
-A simple web-based photo editor
+A simple photo editor
