@@ -1,0 +1,15 @@
+[submodule "third-party/imgui"]
+	path = third-party/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "third-party/implot"]
+	path = third-party/implot
+	url = https://github.com/epezent/implot.git
+[submodule "third-party/SDL"]
+	path = third-party/SDL
+	url = https://github.com/libsdl-org/SDL.git
+[submodule "third-party/stb"]
+	path = third-party/stb
+	url = https://github.com/nothings/stb.git
+[submodule "third-party/tinyfiledialogs-code"]
+	path = third-party/tinyfiledialogs-code
+	url = git://git.code.sf.net/p/tinyfiledialogs/code
