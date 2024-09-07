@@ -1,9 +1,19 @@
 # Find OpenGL
 find_package(OpenGL REQUIRED)
 
+# Add definition to silence deprecation warnings on macOS
+if(APPLE)
+    add_definitions(-DGL_SILENCE_DEPRECATION)
+endif()
+
 # Define the source files
 set(SRC_FILES
+        ImageEditor.cpp
+        ImageLoader.cpp
         main.cpp
+        Toolbar.cpp
+        UiComponents.cpp
+        WindowManager.cpp
 )
 
 include_directories(${CMAKE_SOURCE_DIR}/third-party/stb)
