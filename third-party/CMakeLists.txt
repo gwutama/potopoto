@@ -29,3 +29,13 @@ set(TINYFILEDIALOGS_SOURCES
 
 add_library(tinyfiledialogs STATIC ${TINYFILEDIALOGS_SOURCES})
 target_include_directories(tinyfiledialogs PUBLIC tinyfiledialogs)
+
+# OpenCV
+set(OpenCV_DIR ${CMAKE_SOURCE_DIR}/third-party/opencv)
+set(WITH_OBSENSOR OFF)
+
+# Add OpenCV as a subdirectory
+add_subdirectory(opencv)
+
+# Link OpenCV to the target
+target_link_libraries(imgui PUBLIC ${OpenCV_LIBS})
