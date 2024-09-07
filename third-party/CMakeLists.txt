@@ -1,4 +1,10 @@
 # Add ImGui library
+# Add ImPlot library
+set(IMPLOT_SOURCES
+        implot/implot.cpp
+        implot/implot_items.cpp
+)
+
 set(IMGUI_SOURCES
         imgui/imgui.cpp
         imgui/imgui_draw.cpp
@@ -9,8 +15,9 @@ set(IMGUI_SOURCES
         imgui/backends/imgui_impl_opengl3.cpp
 )
 
-add_library(imgui STATIC ${IMGUI_SOURCES})
+add_library(imgui STATIC ${IMGUI_SOURCES} ${IMPLOT_SOURCES})
 target_include_directories(imgui PUBLIC imgui imgui/backends)
+
 
 # SDL2
 option(SDL_SHARED "Build shared library" OFF)

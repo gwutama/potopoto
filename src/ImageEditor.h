@@ -10,6 +10,7 @@
 #endif
 
 #include "imgui.h"
+#include <opencv2/opencv.hpp> // Include OpenCV
 
 enum class ActiveTool { None, Zoom, Hand };
 
@@ -25,14 +26,15 @@ private:
     void HandleImageViewer();    // Handle the image viewer's logic
     void RenderToolbar();        // Render the toolbar
     void DisplayExifInfo();      // Display EXIF information
+    void CalculateHistogram();   // Calculate and display histogram
 
     GLuint image_texture;
     int image_width, image_height;
     float zoom;
     ImVec2 image_offset;
     ActiveTool active_tool;
+
+    cv::Mat image; // OpenCV image
 };
-
-
 
 #endif //POTOPOTO_IMAGEEDITOR_H

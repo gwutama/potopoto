@@ -1,6 +1,7 @@
 #include "WindowManager.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_opengl3.h"
+#include "implot.h"
 
 #ifdef __APPLE__
 #include <OpenGL/gl.h> // For macOS
@@ -27,6 +28,7 @@ bool InitializeWindow() {
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+    ImPlot::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     (void)io;
     ImGui::StyleColorsDark();
@@ -66,6 +68,7 @@ void RenderFrame() {
 void Cleanup() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
+    ImPlot::DestroyContext();
     ImGui::DestroyContext();
     SDL_GL_DeleteContext(gl_context);
     SDL_DestroyWindow(window);
