@@ -16,7 +16,6 @@ set(SRC_FILES
         WindowManager.cpp
 )
 
-include_directories(${CMAKE_SOURCE_DIR}/third-party/stb)
 include_directories(${CMAKE_SOURCE_DIR}/third-party/tinyfiledialogs-code)
 include_directories(${CMAKE_SOURCE_DIR}/third-party/implot)
 
