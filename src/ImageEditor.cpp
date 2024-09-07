@@ -228,7 +228,9 @@ void ImageEditor::CalculateHistogram() {
     cv::normalize(r_hist, r_hist, 0, 1, cv::NORM_MINMAX);
 
     // Display the histogram using ImGui (ImPlot must be initialized before using this)
-    if (ImPlot::BeginPlot("", nullptr, nullptr, ImVec2(-1,0), ImPlotFlags_NoLegend | ImPlotFlags_NoMouseText)) {
+    ImVec2 plot_size = ImGui::GetContentRegionAvail();
+
+    if (ImPlot::BeginPlot("", nullptr, nullptr, plot_size, ImPlotFlags_NoLegend | ImPlotFlags_NoMouseText)) {
         ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_NoTickLabels);
         ImPlot::SetupAxis(ImAxis_Y1, nullptr, ImPlotAxisFlags_NoTickLabels);
 
