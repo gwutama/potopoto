@@ -13,3 +13,6 @@
 [submodule "third-party/opencv"]
 	path = third-party/opencv
 	url = https://github.com/opencv/opencv.git
+[submodule "third-party/exiv2"]
+	path = third-party/exiv2
+	url = https://github.com/Exiv2/exiv2.git

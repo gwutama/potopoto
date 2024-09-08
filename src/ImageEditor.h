@@ -29,6 +29,8 @@ private:
     void CalculateHistogram();   // Calculate and display histogram
     void GetImageInfo();         // Get image information
     void GetFileInfo(const char* filename); // Get file information
+    void ExtractExifMetadata(const std::string& filename);
+    void DisplayExifMetadata();
 
     GLuint image_texture;
     int image_width, image_height;
@@ -37,6 +39,7 @@ private:
     ActiveTool active_tool;
     cv::Mat image; // OpenCV image
     std::vector<std::string> image_info;
+    std::vector<std::string> image_exif;
 };
 
 #endif //POTOPOTO_IMAGEEDITOR_H

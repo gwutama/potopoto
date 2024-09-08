@@ -10,6 +10,7 @@
 #include <SDL.h>     // Include SDL for SDL_Event
 #include <opencv2/opencv.hpp> // Include OpenCV for image processing
 #include <implot.h>  // Include ImPlot for plotting histograms
+#include <exiv2/exiv2.hpp>
 
 // Global OpenCV image object to store the loaded image
 cv::Mat image;
@@ -91,6 +92,12 @@ void ImageEditor::RenderImageEditor() {
             DisplayImageInfo();
             ImGui::EndTabItem();
         }
+
+        if (ImGui::BeginTabItem("EXIF")) {
+            DisplayExifMetadata();
+            ImGui::EndTabItem();
+        }
+
         ImGui::EndTabBar();
     }
     ImGui::EndChild();
@@ -109,6 +116,11 @@ void ImageEditor::RenderImageEditor() {
 }
 
 void ImageEditor::LoadImage(const char* filename) {
+    // clear the previous image data
+    image.release();
+    image_info.clear();
+    image_exif.clear();
+
     // Load the image using OpenCV
     image = cv::imread(filename, cv::IMREAD_UNCHANGED);
     if (image.empty()) {
@@ -135,6 +147,7 @@ void ImageEditor::LoadImage(const char* filename) {
     // Extract image information
     GetImageInfo();
     GetFileInfo(filename);
+    ExtractExifMetadata(filename);
 }
 
 void ImageEditor::SaveImage() {
@@ -296,5 +309,40 @@ void ImageEditor::GetFileInfo(const char* filename) {
         image_info.push_back("Modified: " + modification_time_str.str());
     } else {
         std::cerr << "Error: Could not retrieve file information for: " << filename << std::endl;
+    }
+}
+
+void ImageEditor::ExtractExifMetadata(const std::string& filename) {
+    try {
+        Exiv2::Image::UniquePtr image = Exiv2::ImageFactory::open(filename);
+        if (!image) {
+            std::cerr << "Error: Could not open image file for metadata extraction: " << filename << std::endl;
+            return;
+        }
+        image->readMetadata();
+        Exiv2::ExifData &exifData = image->exifData();
+        if (exifData.empty()) {
+            std::cerr << "No Exif data found in the file: " << filename << std::endl;
+            return;
+        }
+
+        for (Exiv2::ExifData::const_iterator i = exifData.begin(); i != exifData.end(); ++i) {
+            std::string key = i->key();
+            std::string value = i->value().toString();
+            image_exif.push_back(key + ": " + value);
+        }
+    } catch (Exiv2::Error& e) {
+        std::cerr << "Error reading EXIF data: " << e.what() << std::endl;
+    }
+}
+
+void ImageEditor::DisplayExifMetadata() {
+    if (image_exif.empty()) {
+        ImGui::Text("No EXIF metadata available.");
+        return;
+    }
+
+    for (const auto& info : image_exif) {
+        ImGui::Text("%s", info.c_str());
     }
 }

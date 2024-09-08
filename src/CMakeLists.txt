@@ -6,6 +6,8 @@ if(APPLE)
     add_definitions(-DGL_SILENCE_DEPRECATION)
 endif()
 
+find_package(Iconv)
+
 # Define the source files
 set(SRC_FILES
         ImageEditor.cpp
@@ -36,8 +38,11 @@ include_directories(${CMAKE_SOURCE_DIR}/third-party/opencv/modules/stitching/inc
 include_directories(${CMAKE_SOURCE_DIR}/third-party/opencv/modules/video/include)
 include_directories(${CMAKE_SOURCE_DIR}/third-party/opencv/modules/videoio/include)
 
+include_directories(${CMAKE_SOURCE_DIR}/third-party/exiv2/include)
+
 # Add executable
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 
 # Link libraries
-target_link_libraries(${PROJECT_NAME} PRIVATE SDL2::SDL2 ${OPENGL_LIBRARIES} OpenGL::GLU imgui tinyfiledialogs opencv_ts)
+target_link_libraries(${PROJECT_NAME} PRIVATE
+        SDL2::SDL2 ${OPENGL_LIBRARIES} OpenGL::GLU imgui tinyfiledialogs opencv_ts Exiv2::exiv2lib Iconv::Iconv)

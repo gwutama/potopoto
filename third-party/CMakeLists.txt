@@ -46,3 +46,14 @@ add_subdirectory(opencv)
 
 # Link OpenCV to the target
 target_link_libraries(imgui PUBLIC ${OpenCV_LIBS})
+
+# Exiv2
+set(BUILD_SHARED_LIBS OFF)
+set(EXIV2_ENABLE_XMP OFF)
+set(EXIV2_ENABLE_PNG OFF)
+set(EXIV2_ENABLE_BROTLI OFF)
+set(EXIV2_ENABLE_INIH OFF)
+#set(EXIV2_ENABLE_FILESYSTEM_ACCESS OFF)
+set(EXIV2_BUILD_EXIV2_COMMAND OFF)
+
+add_subdirectory(exiv2)
