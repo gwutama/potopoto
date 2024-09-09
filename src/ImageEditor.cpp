@@ -64,8 +64,8 @@ void ImageEditor::RenderImageEditor() {
     ImGui::SameLine();
 
     ImVec2 available_size = ImGui::GetContentRegionAvail();
-    float left_pane_width = available_size.x * 0.75f;
-    float right_pane_width = available_size.x - left_pane_width;
+    float right_pane_width = 400;
+    float left_pane_width = available_size.x - right_pane_width;
 
     ImGui::BeginChild("LeftPane", ImVec2(left_pane_width, available_size.y), false);
     if (image_texture) {
@@ -78,7 +78,7 @@ void ImageEditor::RenderImageEditor() {
     ImGui::SameLine();
     ImGui::BeginChild("RightPane", ImVec2(right_pane_width, available_size.y), false);
 
-    ImGui::BeginChild("Tabs", ImVec2(0, available_size.y * 0.3f), true);
+    ImGui::BeginChild("Tabs", ImVec2(0, 200), true);
     if (ImGui::BeginTabBar("TabBar")) {
         if (ImGui::BeginTabItem("Histogram")) {
             // Disable mouse interactions
@@ -203,8 +203,25 @@ void ImageEditor::DisplayImageInfo() {
         return;
     }
 
-    for (const auto& info : image_info) {
-        ImGui::Text("%s", info.c_str());
+    if (ImGui::BeginTable("ImageInfoTable", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+        ImGui::TableSetupColumn("Property");
+        ImGui::TableSetupColumn("Value");
+        ImGui::TableHeadersRow();
+
+        for (const auto& info : image_info) {
+            size_t delimiter_pos = info.find(": ");
+            if (delimiter_pos != std::string::npos) {
+                std::string property = info.substr(0, delimiter_pos);
+                std::string value = info.substr(delimiter_pos + 2);
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("%s", property.c_str());
+                ImGui::TableNextColumn();
+                ImGui::Text("%s", value.c_str());
+            }
+        }
+        ImGui::EndTable();
     }
 }
 
@@ -342,7 +359,24 @@ void ImageEditor::DisplayExifMetadata() {
         return;
     }
 
-    for (const auto& info : image_exif) {
-        ImGui::Text("%s", info.c_str());
+    if (ImGui::BeginTable("ExifMetadataTable", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+        ImGui::TableSetupColumn("Key");
+        ImGui::TableSetupColumn("Value");
+        ImGui::TableHeadersRow();
+
+        for (const auto& info : image_exif) {
+            size_t delimiter_pos = info.find(": ");
+            if (delimiter_pos != std::string::npos) {
+                std::string key = info.substr(0, delimiter_pos);
+                std::string value = info.substr(delimiter_pos + 2);
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("%s", key.c_str());
+                ImGui::TableNextColumn();
+                ImGui::Text("%s", value.c_str());
+            }
+        }
+        ImGui::EndTable();
     }
 }
