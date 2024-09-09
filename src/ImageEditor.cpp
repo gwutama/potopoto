@@ -12,19 +12,14 @@
 #include <implot.h>  // Include ImPlot for plotting histograms
 #include <exiv2/exiv2.hpp>
 
-// Global OpenCV image object to store the loaded image
-cv::Mat image;
-
 ImageEditor::ImageEditor()
-        : image_texture(0), image_width(0), image_height(0), zoom(1.0f), image_offset(ImVec2(0.0f, 0.0f)), active_tool(ActiveTool::Zoom) {}
+        : image_texture(0), image_width(0), image_height(0), zoom(1.0f), active_tool(ActiveTool::Zoom) {}
 
 void ImageEditor::Render() {
     RenderImageEditor();
 }
 
 void ImageEditor::RenderImageEditor() {
-    static float brightness = 1.0f;
-    static float contrast = 1.0f;
     static int filter = 0; // 0: None, 1: Blur, 2: Sharpen, etc.
 
     // Main Menu Bar
@@ -83,7 +78,7 @@ void ImageEditor::RenderImageEditor() {
         if (ImGui::BeginTabItem("Histogram")) {
             // Disable mouse interactions
             ImGui::BeginDisabled();
-            CalculateHistogram();
+            CalculateHistogram(adjusted_image);
             ImGui::EndDisabled();
             ImGui::EndTabItem();
         }
@@ -117,29 +112,29 @@ void ImageEditor::RenderImageEditor() {
 
 void ImageEditor::LoadImage(const char* filename) {
     // clear the previous image data
-    image.release();
+    original_image.release();
     image_info.clear();
     image_exif.clear();
 
     // Load the image using OpenCV
-    image = cv::imread(filename, cv::IMREAD_UNCHANGED);
-    if (image.empty()) {
+    original_image = cv::imread(filename, cv::IMREAD_UNCHANGED);
+    if (original_image.empty()) {
         std::cerr << "Error: Could not load image file: " << filename << std::endl;
         return;
     }
 
     // Convert to RGBA format if necessary
-    if (image.channels() == 1) {
-        cv::cvtColor(image, image, cv::COLOR_GRAY2RGBA);
-    } else if (image.channels() == 3) {
-        cv::cvtColor(image, image, cv::COLOR_BGR2RGBA);
-    } else if (image.channels() != 4) {
-        std::cerr << "Error: Unsupported image format with " << image.channels() << " channels." << std::endl;
+    if (original_image.channels() == 1) {
+        cv::cvtColor(original_image, original_image, cv::COLOR_GRAY2RGBA);
+    } else if (original_image.channels() == 3) {
+        cv::cvtColor(original_image, original_image, cv::COLOR_BGR2RGBA);
+    } else if (original_image.channels() != 4) {
+        std::cerr << "Error: Unsupported image format with " << original_image.channels() << " channels." << std::endl;
         return;
     }
 
-    image_width = image.cols;
-    image_height = image.rows;
+    image_width = original_image.cols;
+    image_height = original_image.rows;
 
     // Load the image as OpenGL texture
     image_texture = LoadImageFromFile(filename, &image_width, &image_height);
@@ -148,6 +143,8 @@ void ImageEditor::LoadImage(const char* filename) {
     GetImageInfo();
     GetFileInfo(filename);
     ExtractExifMetadata(filename);
+
+    adjusted_image = original_image.clone();
 }
 
 void ImageEditor::SaveImage() {
@@ -183,7 +180,14 @@ void ImageEditor::HandleImageViewer() {
         }
     }
 
-    // Render the image
+    // Adjust brightness and contrast
+    AdjustBrightness(original_image, adjusted_image, brightness);
+    AdjustContrast(adjusted_image, adjusted_image, contrast);
+
+    // Update the texture with the adjusted image
+    UpdateTextureWithImage(adjusted_image);
+
+    // Render the adjusted image
     if (image_texture) {
         ImGui::Image((void*)(intptr_t)image_texture, image_size);
     } else {
@@ -191,6 +195,9 @@ void ImageEditor::HandleImageViewer() {
     }
 
     ImGui::EndChild();
+
+    // Recalculate and display the histogram
+    CalculateHistogram(adjusted_image);
 }
 
 void ImageEditor::RenderToolbar() {
@@ -225,7 +232,7 @@ void ImageEditor::DisplayImageInfo() {
     }
 }
 
-void ImageEditor::CalculateHistogram() {
+void ImageEditor::CalculateHistogram(const cv::Mat& image) {
     if (image.empty()) {
         ImGui::Text("No image loaded.");
         return;
@@ -288,17 +295,17 @@ void ImageEditor::CalculateHistogram() {
 }
 
 void ImageEditor::GetImageInfo() {
-    if (image.empty()) {
+    if (original_image.empty()) {
         std::cerr << "No image loaded." << std::endl;
         return;
     }
 
     image_info.clear();
-    image_info.push_back("Width: " + std::to_string(image.cols));
-    image_info.push_back("Height: " + std::to_string(image.rows));
-    image_info.push_back("Channels: " + std::to_string(image.channels()));
-    image_info.push_back("Number of Pixels: " + std::to_string(image.total()));
-    image_info.push_back("Image Size: " + std::to_string(image.total() * image.elemSize()) + " bytes");
+    image_info.push_back("Width: " + std::to_string(original_image.cols));
+    image_info.push_back("Height: " + std::to_string(original_image.rows));
+    image_info.push_back("Channels: " + std::to_string(original_image.channels()));
+    image_info.push_back("Number of Pixels: " + std::to_string(original_image.total()));
+    image_info.push_back("Image Size: " + std::to_string(original_image.total() * original_image.elemSize()) + " bytes");
 }
 
 
@@ -379,4 +386,25 @@ void ImageEditor::DisplayExifMetadata() {
         }
         ImGui::EndTable();
     }
+}
+
+void ImageEditor::AdjustBrightness(cv::Mat& src, cv::Mat& dst, float brightness) {
+    src.convertTo(dst, -1, brightness, 0); // Adjust the brightness
+}
+
+void ImageEditor::AdjustContrast(cv::Mat& src, cv::Mat& dst, float contrast) {
+    src.convertTo(dst, -1, contrast, 128 * (1 - contrast)); // Adjust the contrast
+}
+
+void ImageEditor::UpdateTextureWithImage(const cv::Mat& image) {
+    if (image_texture) {
+        glDeleteTextures(1, &image_texture);
+    }
+
+    glGenTextures(1, &image_texture);
+    glBindTexture(GL_TEXTURE_2D, image_texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.cols, image.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
