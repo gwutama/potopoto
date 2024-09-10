@@ -54,6 +54,7 @@ void Image::Close() {
     image_exif.clear();
     brightness = 1.0f;
     contrast = 1.0f;
+    hue = 0.0f;
     saturation = 1.0f;
 }
 
@@ -208,19 +209,31 @@ std::vector<cv::Mat> Image::CalculateNormalizedHistogram() const {
 
 
 void Image::AdjustBrightness(float value) {
-    brightness = value;
+    if (value == 1.0f) {
+        return;
+    }
+
     // first one in pipeline, so we use the original image
-    original_image.convertTo(adjusted_image, -1, brightness, 0);
+    original_image.convertTo(adjusted_image, -1, value, 0);
+    brightness = value;
 }
 
 
 void Image::AdjustContrast(float value) {
+    if (value == 1.0f) {
+        return;
+    }
+
+    adjusted_image.convertTo(adjusted_image, -1, value, 128 * (1 - value));
     contrast = value;
-    adjusted_image.convertTo(adjusted_image, -1, contrast, 128 * (1 - contrast));
 }
 
 
 void Image::AdjustHue(float value) {
+    if (value == 0.0f) {
+        return;
+    }
+
     // Convert RGBA to RGB color space
     cv::Mat rgb_image;
     cv::cvtColor(adjusted_image, rgb_image, cv::COLOR_RGBA2RGB);
@@ -250,11 +263,15 @@ void Image::AdjustHue(float value) {
 
     // Convert RGB back to RGBA
     cv::cvtColor(rgb_image, adjusted_image, cv::COLOR_RGB2RGBA);
+
+    hue = value;
 }
 
 
 void Image::AdjustSaturation(float value) {
-    saturation = value;
+    if (value == 1.0f) {
+        return;
+    }
 
     // Convert RGBA to RGB color space
     cv::Mat rgb_image;
@@ -270,7 +287,7 @@ void Image::AdjustSaturation(float value) {
 
     // Adjust the saturation channel
     hsv_channels[1].convertTo(hsv_channels[1], CV_32F); // Convert to float for scaling
-    hsv_channels[1] *= saturation; // Apply saturation scale
+    hsv_channels[1] *= value; // Apply saturation scale
 
     // Clamp values to the range [0, 255]
     cv::threshold(hsv_channels[1], hsv_channels[1], 255, 255, cv::THRESH_TRUNC); // Max saturation is 255
@@ -283,4 +300,6 @@ void Image::AdjustSaturation(float value) {
 
     // Convert RGB back to RGBA
     cv::cvtColor(rgb_image, adjusted_image, cv::COLOR_RGB2RGBA);
+
+    saturation = value;
 }

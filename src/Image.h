@@ -51,6 +51,7 @@ private:
 
     float brightness;
     float contrast;
+    float hue;
     float saturation;
 };
 
