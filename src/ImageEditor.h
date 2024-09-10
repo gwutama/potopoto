@@ -22,6 +22,7 @@ private:
     void RenderImageViewer();
     void RenderImageAnalysisTabs();
     void RenderImageAdjustments();
+    bool ImageAdjustmentsHaveChanged();
 
     void RenderImageInfo();
     void RenderHistogram();
@@ -33,9 +34,13 @@ private:
     ActiveTool active_tool;
     float zoom;
     float brightness;
+    float last_brightness;
     float contrast;
+    float last_contrast;
     float hue;
+    float last_hue;
     float saturation;
+    float last_saturation;
 };
 
 #endif //POTOPOTO_IMAGEEDITOR_H

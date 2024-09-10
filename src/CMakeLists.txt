@@ -6,7 +6,11 @@ if(APPLE)
     add_definitions(-DGL_SILENCE_DEPRECATION)
 endif()
 
-find_package(Iconv)
+# TODO: include these ibraries under third-party/ and build them statically
+find_package(Iconv REQUIRED)
+find_package(OpenMP REQUIRED)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 # Define the source files
 set(SRC_FILES
@@ -43,4 +47,6 @@ add_executable(${PROJECT_NAME} ${SRC_FILES})
 
 # Link libraries
 target_link_libraries(${PROJECT_NAME} PRIVATE
-        SDL2::SDL2 ${OPENGL_LIBRARIES} OpenGL::GLU imgui tinyfiledialogs opencv_ts Exiv2::exiv2lib Iconv::Iconv)
+        SDL2::SDL2 ${OPENGL_LIBRARIES} OpenGL::GLU
+        imgui tinyfiledialogs opencv_ts
+        Exiv2::exiv2lib Iconv::Iconv /opt/homebrew//Cellar/libomp/18.1.8/lib/libomp.a)

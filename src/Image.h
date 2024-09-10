@@ -42,8 +42,8 @@ private:
     void LoadExifMetadata(const std::string& filename);
 
 private:
-    cv::Mat original_image;
-    cv::Mat adjusted_image;
+    cv::UMat original_image;
+    cv::UMat adjusted_image;
 
     std::map<std::string, std::string> file_info;
     std::map<std::string, std::string> image_info;

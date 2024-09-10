@@ -110,9 +110,13 @@ void ImageEditor::HandleCloseImage() {
     active_tool = ActiveTool::Hand;
     zoom = 1.0f;
     brightness = 1.0f;
+    last_brightness = 1.0f;
     contrast = 1.0f;
+    last_contrast = 1.0f;
     hue = 0.0f;
+    last_hue = 0.0f;
     saturation = 1.0f;
+    last_saturation = 1.0f;
 }
 
 
@@ -164,22 +168,28 @@ void ImageEditor::RenderImageViewer() {
         }
     }
 
-    // Adjust brightness and contrast
-    image.AdjustBrightness(brightness);
-    image.AdjustContrast(contrast);
-    image.AdjustHue(hue);
-    image.AdjustSaturation(saturation);
+    bool adjustmentsHaveChanged = ImageAdjustmentsHaveChanged();
 
-    // Update the texture with the adjusted image
-    image.LoadToTexture(image_texture);
+    if (adjustmentsHaveChanged) {
+        image.AdjustBrightness(brightness);
+        image.AdjustContrast(contrast);
+        image.AdjustHue(hue);
+        image.AdjustSaturation(saturation);
+
+        // Update the texture with the adjusted image
+        image.LoadToTexture(image_texture);
+    }
+
 
     // Render the adjusted image
     ImGui::Image((void *) (intptr_t) image_texture, image_size);
 
     ImGui::EndChild();
 
-    // Recalculate and display the histogram
-    RenderHistogram();
+    if (adjustmentsHaveChanged) {
+        // Recalculate and display the histogram
+        RenderHistogram();
+    }
 }
 
 
@@ -220,6 +230,19 @@ void ImageEditor::RenderImageAdjustments() {
     ImGui::SliderFloat("Hue", &hue, 0.0f, 360.0f);
     ImGui::SliderFloat("Saturation", &saturation, 0.0f, 2.0f);
     ImGui::EndChild();
+}
+
+
+bool ImageEditor::ImageAdjustmentsHaveChanged() {
+    if (brightness != last_brightness || contrast != last_contrast || hue != last_hue || saturation != last_saturation) {
+        last_brightness = brightness;
+        last_contrast = contrast;
+        last_hue = hue;
+        last_saturation = saturation;
+        return true;
+    }
+
+    return false;
 }
 
 

@@ -1,10 +1,11 @@
 #include "Image.h"
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
-#include <opencv2/core/ocl.hpp>
 #include <exiv2/exiv2.hpp>
 #include <sstream>
 #include <sys/stat.h>
+#include <omp.h>
+
 
 Image::Image() {
     Close(); // = reset
@@ -16,7 +17,7 @@ Image::~Image() {}
 bool Image::Open(const std::string& in_filename) {
     Close();
 
-    original_image = cv::imread(in_filename, cv::IMREAD_UNCHANGED);
+    cv::imread(in_filename, cv::IMREAD_UNCHANGED).copyTo(original_image);
 
     if (original_image.empty()) {
         std::cerr << "Error: Could not load image file: " << in_filename << std::endl;
@@ -67,11 +68,14 @@ void Image::LoadToTexture(GLuint& texture) {
         glDeleteTextures(1, &texture);
     }
 
+    // Download the data from UMat to Mat
+    cv::Mat imageMat = adjusted_image.getMat(cv::ACCESS_READ);
+
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, adjusted_image.cols, adjusted_image.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, adjusted_image.data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageMat.cols, imageMat.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageMat.data);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
@@ -159,7 +163,7 @@ std::vector<cv::Mat> Image::CalculateNormalizedHistogram() const {
     if (adjusted_image.channels() == 4) {
         cv::cvtColor(adjusted_image, imageRGB, cv::COLOR_RGBA2RGB);
     } else if (adjusted_image.channels() == 3) {
-        imageRGB = adjusted_image;
+        adjusted_image.copyTo(imageRGB);
     } else {
         std::cerr << "Error: Unsupported image format with " << adjusted_image.channels() << " channels." << std::endl;
         return bgr_hist;
@@ -171,21 +175,28 @@ std::vector<cv::Mat> Image::CalculateNormalizedHistogram() const {
 
     // Set the number of bins and range
     int histSize = 256;
-    float range[] = { 0, 256 };
-    const float* histRange = { range };
+    float range[] = {0, 256};
+    const float* histRange = {range};
     bool uniform = true, accumulate = false;
 
     cv::Mat b_hist, g_hist, r_hist;
 
     // Compute the histograms
-    cv::calcHist(&bgr_planes[0], 1, 0, cv::Mat(), b_hist, 1, &histSize, &histRange, uniform, accumulate);
-    cv::calcHist(&bgr_planes[1], 1, 0, cv::Mat(), g_hist, 1, &histSize, &histRange, uniform, accumulate);
-    cv::calcHist(&bgr_planes[2], 1, 0, cv::Mat(), r_hist, 1, &histSize, &histRange, uniform, accumulate);
-
-    // Normalize the histograms to [0,1] for display
-    cv::normalize(b_hist, b_hist, 0, 1, cv::NORM_MINMAX);
-    cv::normalize(g_hist, g_hist, 0, 1, cv::NORM_MINMAX);
-    cv::normalize(r_hist, r_hist, 0, 1, cv::NORM_MINMAX);
+#pragma omp section
+    {
+        cv::calcHist(&bgr_planes[0], 1, 0, cv::UMat(), b_hist, 1, &histSize, &histRange, uniform, accumulate);
+        cv::normalize(b_hist, b_hist, 0, 1, cv::NORM_MINMAX);
+    }
+#pragma omp section
+    {
+        cv::calcHist(&bgr_planes[1], 1, 0, cv::UMat(), g_hist, 1, &histSize, &histRange, uniform, accumulate);
+        cv::normalize(g_hist, g_hist, 0, 1, cv::NORM_MINMAX);
+    }
+#pragma omp section
+    {
+        cv::calcHist(&bgr_planes[2], 1, 0, cv::UMat(), r_hist, 1, &histSize, &histRange, uniform, accumulate);
+        cv::normalize(r_hist, r_hist, 0, 1, cv::NORM_MINMAX);
+    }
 
     bgr_hist.push_back(b_hist);
     bgr_hist.push_back(g_hist);
@@ -193,6 +204,7 @@ std::vector<cv::Mat> Image::CalculateNormalizedHistogram() const {
 
     return bgr_hist;
 }
+
 
 
 void Image::AdjustBrightness(float value) {
