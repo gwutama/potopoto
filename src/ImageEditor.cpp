@@ -171,10 +171,29 @@ void ImageEditor::RenderImageViewer() {
     bool adjustmentsHaveChanged = ImageAdjustmentsHaveChanged();
 
     if (adjustmentsHaveChanged) {
-        image.AdjustBrightness(brightness);
-        image.AdjustContrast(contrast);
-        image.AdjustHue(hue);
-        image.AdjustSaturation(saturation);
+        // Execute each adjustment in an individual thread before combining them
+        // Adjustments are done in parallel sections
+#pragma omp parallel sections
+        {
+#pragma omp section
+            {
+                image.AdjustBrightness(brightness);
+            }
+#pragma omp section
+            {
+                image.AdjustContrast(contrast);
+            }
+#pragma omp section
+            {
+                image.AdjustHue(hue);
+            }
+#pragma omp section
+            {
+                image.AdjustSaturation(saturation);
+            }
+        }
+
+        image.CombineAdjustmentLayers();
 
         // Update the texture with the adjusted image
         image.LoadToTexture(image_texture);

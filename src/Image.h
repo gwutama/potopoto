@@ -11,6 +11,11 @@
 #include <GL/gl.h>
 #endif
 
+#include "LayerBrightness.h"
+#include "LayerContrast.h"
+#include "LayerHue.h"
+#include "LayerSaturation.h"
+
 class Image {
 public:
     Image();
@@ -35,6 +40,7 @@ public:
     void AdjustContrast(float value);
     void AdjustHue(float value);
     void AdjustSaturation(float value);
+    void CombineAdjustmentLayers();
 
 private:
     void LoadFileInfo(const std::string& filename);
@@ -49,10 +55,10 @@ private:
     std::map<std::string, std::string> image_info;
     std::map<std::string, std::string> image_exif;
 
-    float brightness;
-    float contrast;
-    float hue;
-    float saturation;
+    LayerBrightness brightness_layer;
+    LayerContrast contrast_layer;
+    LayerHue hue_layer;
+    LayerSaturation saturation_layer;
 };
 
 #endif //POTOPOTO_IMAGE_H

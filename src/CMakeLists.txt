@@ -16,6 +16,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 set(SRC_FILES
         Image.cpp
         ImageEditor.cpp
+        ImageUtils.cpp
+        LayerBase.h
+        LayerBrightness.cpp
+        LayerContrast.cpp
+        LayerHue.cpp
+        LayerSaturation.cpp
         main.cpp
         WindowManager.cpp
 )

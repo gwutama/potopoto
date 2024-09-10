@@ -6,6 +6,8 @@
 #include <sys/stat.h>
 #include <omp.h>
 
+#include "ImageUtils.h"
+
 
 Image::Image() {
     Close(); // = reset
@@ -42,6 +44,13 @@ bool Image::Open(const std::string& in_filename) {
 
     adjusted_image = original_image.clone();
 
+    brightness_layer.SetImage(original_image);
+    contrast_layer.SetImage(original_image);
+
+    cv::UMat hsv_image = ImageUtils::RgbaToHsv(original_image);
+    hue_layer.SetImage(hsv_image);
+    saturation_layer.SetImage(hsv_image);
+
     return true;
 }
 
@@ -52,10 +61,6 @@ void Image::Close() {
     file_info.clear();
     image_info.clear();
     image_exif.clear();
-    brightness = 1.0f;
-    contrast = 1.0f;
-    hue = 0.0f;
-    saturation = 1.0f;
 }
 
 
@@ -183,20 +188,23 @@ std::vector<cv::Mat> Image::CalculateNormalizedHistogram() const {
     cv::Mat b_hist, g_hist, r_hist;
 
     // Compute the histograms
-#pragma omp section
+#pragma omp parallel sections
     {
-        cv::calcHist(&bgr_planes[0], 1, 0, cv::UMat(), b_hist, 1, &histSize, &histRange, uniform, accumulate);
-        cv::normalize(b_hist, b_hist, 0, 1, cv::NORM_MINMAX);
-    }
 #pragma omp section
-    {
-        cv::calcHist(&bgr_planes[1], 1, 0, cv::UMat(), g_hist, 1, &histSize, &histRange, uniform, accumulate);
-        cv::normalize(g_hist, g_hist, 0, 1, cv::NORM_MINMAX);
-    }
+        {
+            cv::calcHist(&bgr_planes[0], 1, 0, cv::UMat(), b_hist, 1, &histSize, &histRange, uniform, accumulate);
+            cv::normalize(b_hist, b_hist, 0, 1, cv::NORM_MINMAX);
+        }
 #pragma omp section
-    {
-        cv::calcHist(&bgr_planes[2], 1, 0, cv::UMat(), r_hist, 1, &histSize, &histRange, uniform, accumulate);
-        cv::normalize(r_hist, r_hist, 0, 1, cv::NORM_MINMAX);
+        {
+            cv::calcHist(&bgr_planes[1], 1, 0, cv::UMat(), g_hist, 1, &histSize, &histRange, uniform, accumulate);
+            cv::normalize(g_hist, g_hist, 0, 1, cv::NORM_MINMAX);
+        }
+#pragma omp section
+        {
+            cv::calcHist(&bgr_planes[2], 1, 0, cv::UMat(), r_hist, 1, &histSize, &histRange, uniform, accumulate);
+            cv::normalize(r_hist, r_hist, 0, 1, cv::NORM_MINMAX);
+        }
     }
 
     bgr_hist.push_back(b_hist);
@@ -207,99 +215,41 @@ std::vector<cv::Mat> Image::CalculateNormalizedHistogram() const {
 }
 
 
-
 void Image::AdjustBrightness(float value) {
-    if (value == 1.0f) {
-        return;
-    }
-
-    // first one in pipeline, so we use the original image
-    original_image.convertTo(adjusted_image, -1, value, 0);
-    brightness = value;
+    brightness_layer.SetBrightness(value);
+    brightness_layer.Apply();
 }
 
 
 void Image::AdjustContrast(float value) {
-    if (value == 1.0f) {
-        return;
-    }
-
-    adjusted_image.convertTo(adjusted_image, -1, value, 128 * (1 - value));
-    contrast = value;
+    contrast_layer.SetContrast(value);
+    contrast_layer.Apply();
 }
 
 
 void Image::AdjustHue(float value) {
-    if (value == 0.0f) {
-        return;
-    }
-
-    // Convert RGBA to RGB color space
-    cv::Mat rgb_image;
-    cv::cvtColor(adjusted_image, rgb_image, cv::COLOR_RGBA2RGB);
-
-    // Convert RGB to HSV color space
-    cv::Mat hsv_image;
-    cv::cvtColor(rgb_image, hsv_image, cv::COLOR_RGB2HSV);
-
-    // Split the HSV image into separate channels
-    std::vector<cv::Mat> hsv_channels;
-    cv::split(hsv_image, hsv_channels);
-
-    // Adjust the hue channel
-    hsv_channels[0].convertTo(hsv_channels[0], CV_32F); // Convert to float for adjustment
-    hsv_channels[0] += value; // Adjust the hue by the given value
-
-    // Ensure hue values wrap around [0, 179]
-    cv::threshold(hsv_channels[0], hsv_channels[0], 179, 0, cv::THRESH_TOZERO_INV);
-    cv::threshold(hsv_channels[0], hsv_channels[0], 0, 179, cv::THRESH_TOZERO);
-
-    // Convert hue back to 8-bit
-    hsv_channels[0].convertTo(hsv_channels[0], CV_8U);
-
-    // Merge the channels back and convert to RGB color space
-    cv::merge(hsv_channels, hsv_image);
-    cv::cvtColor(hsv_image, rgb_image, cv::COLOR_HSV2RGB);
-
-    // Convert RGB back to RGBA
-    cv::cvtColor(rgb_image, adjusted_image, cv::COLOR_RGB2RGBA);
-
-    hue = value;
+    hue_layer.SetHue(value);
+    hue_layer.Apply();
 }
 
 
 void Image::AdjustSaturation(float value) {
-    if (value == 1.0f) {
-        return;
-    }
+    saturation_layer.SetSaturation(value);
+    saturation_layer.Apply();
+}
 
-    // Convert RGBA to RGB color space
-    cv::Mat rgb_image;
-    cv::cvtColor(adjusted_image, rgb_image, cv::COLOR_RGBA2RGB);
 
-    // Convert RGB to HSV color space
-    cv::Mat hsv_image;
-    cv::cvtColor(rgb_image, hsv_image, cv::COLOR_RGB2HSV);
+void Image::CombineAdjustmentLayers() {
+    // RGBA images
+    cv::UMat brightness_image = brightness_layer.GetAdjustedImage();
+    cv::UMat contrast_image = contrast_layer.GetAdjustedImage();
 
-    // Split the HSV image into separate channels
-    std::vector<cv::Mat> hsv_channels;
-    cv::split(hsv_image, hsv_channels);
+    // Combine the HSV images and convert to RGBA
+    cv::UMat hue_image = hue_layer.GetAdjustedImage();
+    cv::UMat saturation_image = saturation_layer.GetAdjustedImage();
+    cv::UMat hsv_hue_saturation_image = ImageUtils::CombineHsvImages({hue_image, saturation_image});
+    cv::UMat hue_saturation_image = ImageUtils::HsvToRgba(hsv_hue_saturation_image);
 
-    // Adjust the saturation channel
-    hsv_channels[1].convertTo(hsv_channels[1], CV_32F); // Convert to float for scaling
-    hsv_channels[1] *= value; // Apply saturation scale
-
-    // Clamp values to the range [0, 255]
-    cv::threshold(hsv_channels[1], hsv_channels[1], 255, 255, cv::THRESH_TRUNC); // Max saturation is 255
-    cv::threshold(hsv_channels[1], hsv_channels[1], 0, 0, cv::THRESH_TOZERO); // Min saturation is 0
-    hsv_channels[1].convertTo(hsv_channels[1], CV_8U); // Convert back to 8-bit
-
-    // Merge the channels back and convert to RGB color space
-    cv::merge(hsv_channels, hsv_image);
-    cv::cvtColor(hsv_image, rgb_image, cv::COLOR_HSV2RGB);
-
-    // Convert RGB back to RGBA
-    cv::cvtColor(rgb_image, adjusted_image, cv::COLOR_RGB2RGBA);
-
-    saturation = value;
+    // Combine the RGBA images
+    adjusted_image = ImageUtils::CombineRgbaImages({brightness_image, contrast_image, hue_saturation_image});
 }
