@@ -4,7 +4,7 @@
 #pragma once
 #include "Image.h"
 
-enum class ActiveTool { None, Zoom, Hand };
+enum class ActiveTool { Zoom, Hand };
 
 class ImageEditor {
 public:
@@ -12,33 +12,30 @@ public:
     void Render();
 
 private:
-    void RenderImageEditor();    // Render the image editor GUI
-
     void RenderMenubar();
     void HandleLoadImage(const std::string& filename);
     void HandleSaveImage();
+    void HandleCloseImage();
 
-    void RenderToolbar();        // Render the toolbar
+    void RenderToolbar();
 
-    void RenderImageViewer(float width, float height);
+    void RenderImageViewer();
     void RenderImageAnalysisTabs();
     void RenderImageAdjustments();
 
-    void HandleImageViewer();    // Handle the image viewer's logic
-    void RenderImageInfo();      // Display EXIF information
-    void RenderHistogram();   // Calculate and display histogram
+    void RenderImageInfo();
+    void RenderHistogram();
     void RenderExifMetadata();
 
 private:
     Image image;
     GLuint image_texture;
-    float zoom;
     ActiveTool active_tool;
-    std::vector<std::string> image_info;
-    std::vector<std::string> image_exif;
-
-    float brightness = 1.0f;
-    float contrast = 1.0f;
+    float zoom;
+    float brightness;
+    float contrast;
+    float hue;
+    float saturation;
 };
 
 #endif //POTOPOTO_IMAGEEDITOR_H

@@ -1,11 +1,14 @@
 #include "Image.h"
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/core/ocl.hpp>
 #include <exiv2/exiv2.hpp>
 #include <sstream>
 #include <sys/stat.h>
 
-Image::Image() : brightness(1.0f), contrast(1.0f) {}
+Image::Image() {
+    Close(); // = reset
+}
 
 Image::~Image() {}
 
@@ -48,6 +51,9 @@ void Image::Close() {
     file_info.clear();
     image_info.clear();
     image_exif.clear();
+    brightness = 1.0f;
+    contrast = 1.0f;
+    saturation = 1.0f;
 }
 
 
@@ -201,3 +207,68 @@ void Image::AdjustContrast(float value) {
     adjusted_image.convertTo(adjusted_image, -1, contrast, 128 * (1 - contrast));
 }
 
+
+void Image::AdjustHue(float value) {
+    // Convert RGBA to RGB color space
+    cv::Mat rgb_image;
+    cv::cvtColor(adjusted_image, rgb_image, cv::COLOR_RGBA2RGB);
+
+    // Convert RGB to HSV color space
+    cv::Mat hsv_image;
+    cv::cvtColor(rgb_image, hsv_image, cv::COLOR_RGB2HSV);
+
+    // Split the HSV image into separate channels
+    std::vector<cv::Mat> hsv_channels;
+    cv::split(hsv_image, hsv_channels);
+
+    // Adjust the hue channel
+    hsv_channels[0].convertTo(hsv_channels[0], CV_32F); // Convert to float for adjustment
+    hsv_channels[0] += value; // Adjust the hue by the given value
+
+    // Ensure hue values wrap around [0, 179]
+    cv::threshold(hsv_channels[0], hsv_channels[0], 179, 0, cv::THRESH_TOZERO_INV);
+    cv::threshold(hsv_channels[0], hsv_channels[0], 0, 179, cv::THRESH_TOZERO);
+
+    // Convert hue back to 8-bit
+    hsv_channels[0].convertTo(hsv_channels[0], CV_8U);
+
+    // Merge the channels back and convert to RGB color space
+    cv::merge(hsv_channels, hsv_image);
+    cv::cvtColor(hsv_image, rgb_image, cv::COLOR_HSV2RGB);
+
+    // Convert RGB back to RGBA
+    cv::cvtColor(rgb_image, adjusted_image, cv::COLOR_RGB2RGBA);
+}
+
+
+void Image::AdjustSaturation(float value) {
+    saturation = value;
+
+    // Convert RGBA to RGB color space
+    cv::Mat rgb_image;
+    cv::cvtColor(adjusted_image, rgb_image, cv::COLOR_RGBA2RGB);
+
+    // Convert RGB to HSV color space
+    cv::Mat hsv_image;
+    cv::cvtColor(rgb_image, hsv_image, cv::COLOR_RGB2HSV);
+
+    // Split the HSV image into separate channels
+    std::vector<cv::Mat> hsv_channels;
+    cv::split(hsv_image, hsv_channels);
+
+    // Adjust the saturation channel
+    hsv_channels[1].convertTo(hsv_channels[1], CV_32F); // Convert to float for scaling
+    hsv_channels[1] *= saturation; // Apply saturation scale
+
+    // Clamp values to the range [0, 255]
+    cv::threshold(hsv_channels[1], hsv_channels[1], 255, 255, cv::THRESH_TRUNC); // Max saturation is 255
+    cv::threshold(hsv_channels[1], hsv_channels[1], 0, 0, cv::THRESH_TOZERO); // Min saturation is 0
+    hsv_channels[1].convertTo(hsv_channels[1], CV_8U); // Convert back to 8-bit
+
+    // Merge the channels back and convert to RGB color space
+    cv::merge(hsv_channels, hsv_image);
+    cv::cvtColor(hsv_image, rgb_image, cv::COLOR_HSV2RGB);
+
+    // Convert RGB back to RGBA
+    cv::cvtColor(rgb_image, adjusted_image, cv::COLOR_RGB2RGBA);
+}

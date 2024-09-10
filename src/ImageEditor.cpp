@@ -8,16 +8,12 @@
 #include <opencv2/opencv.hpp>
 #include <implot.h>
 
-ImageEditor::ImageEditor()
-        : image_texture(0), zoom(1.0f), active_tool(ActiveTool::Zoom) {}
-
-
-void ImageEditor::Render() {
-    RenderImageEditor();
+ImageEditor::ImageEditor() {
+    HandleCloseImage(); // = reset
 }
 
 
-void ImageEditor::RenderImageEditor() {
+void ImageEditor::Render() {
     RenderMenubar();
 
     // Adjust for the menu bar height
@@ -31,6 +27,10 @@ void ImageEditor::RenderImageEditor() {
                  ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
                  ImGuiWindowFlags_NoTitleBar);
 
+    if (!image.IsOpen()) {
+        ImGui::BeginDisabled();
+    }
+
     RenderToolbar();
 
     ImGui::SameLine();
@@ -39,7 +39,10 @@ void ImageEditor::RenderImageEditor() {
     float right_pane_width = 400;
     float left_pane_width = available_size.x - right_pane_width;
 
-    RenderImageViewer(left_pane_width, available_size.y);
+    // Remove decoration and scrollbars from the LeftPane
+    ImGui::BeginChild("LeftPane", ImVec2(left_pane_width, available_size.y), false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    RenderImageViewer();
+    ImGui::EndChild();
 
     ImGui::SameLine();
 
@@ -47,6 +50,10 @@ void ImageEditor::RenderImageEditor() {
     RenderImageAnalysisTabs();
     RenderImageAdjustments();
     ImGui::EndChild();
+
+    if (!image.IsOpen()) {
+        ImGui::EndDisabled();
+    }
 
     ImGui::End();
 }
@@ -64,6 +71,10 @@ void ImageEditor::RenderMenubar() {
 
         if (ImGui::MenuItem("Save")) {
             HandleSaveImage();
+        }
+
+        if (ImGui::MenuItem("Close")) {
+            HandleCloseImage();
         }
 
         if (ImGui::MenuItem("Exit")) {
@@ -92,6 +103,19 @@ void ImageEditor::HandleSaveImage() {
 }
 
 
+void ImageEditor::HandleCloseImage() {
+    image.Close();
+    glDeleteTextures(1, &image_texture);
+    image_texture = 0;
+    active_tool = ActiveTool::Hand;
+    zoom = 1.0f;
+    brightness = 1.0f;
+    contrast = 1.0f;
+    hue = 0.0f;
+    saturation = 1.0f;
+}
+
+
 void ImageEditor::RenderToolbar() {
     ImGui::BeginChild("Toolbar", ImVec2(50, 0), false);
 
@@ -107,19 +131,11 @@ void ImageEditor::RenderToolbar() {
 }
 
 
-void ImageEditor::RenderImageViewer(float width, float height) {
-    // Remove decoration and scrollbars from the LeftPane
-    ImGui::BeginChild("LeftPane", ImVec2(width, height), false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-
-    if (image_texture) {
-        HandleImageViewer();
+void ImageEditor::RenderImageViewer() {
+    if (!image.IsOpen()) {
+        return;
     }
 
-    ImGui::EndChild();
-}
-
-
-void ImageEditor::HandleImageViewer() {
     ImGuiIO &io = ImGui::GetIO();
 
     // Image Viewer Scrollable Region
@@ -151,6 +167,8 @@ void ImageEditor::HandleImageViewer() {
     // Adjust brightness and contrast
     image.AdjustBrightness(brightness);
     image.AdjustContrast(contrast);
+    image.AdjustHue(hue);
+    image.AdjustSaturation(saturation);
 
     // Update the texture with the adjusted image
     image.LoadToTexture(image_texture);
@@ -199,6 +217,8 @@ void ImageEditor::RenderImageAdjustments() {
     ImGui::Text("Adjustments");
     ImGui::SliderFloat("Brightness", &brightness, 0.0f, 2.0f);
     ImGui::SliderFloat("Contrast", &contrast, 0.0f, 2.0f);
+    ImGui::SliderFloat("Hue", &hue, 0.0f, 360.0f);
+    ImGui::SliderFloat("Saturation", &saturation, 0.0f, 2.0f);
     ImGui::EndChild();
 }
 

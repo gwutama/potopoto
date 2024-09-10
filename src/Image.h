@@ -17,6 +17,7 @@ public:
     ~Image();
 
     bool Open(const std::string& in_filename);
+    bool IsOpen() const { return !original_image.empty(); }
     void Close();
     bool Save(const std::string& out_filename) const;
 
@@ -32,6 +33,8 @@ public:
 
     void AdjustBrightness(float value);
     void AdjustContrast(float value);
+    void AdjustHue(float value);
+    void AdjustSaturation(float value);
 
 private:
     void LoadFileInfo(const std::string& filename);
@@ -48,6 +51,7 @@ private:
 
     float brightness;
     float contrast;
+    float saturation;
 };
 
 #endif //POTOPOTO_IMAGE_H
