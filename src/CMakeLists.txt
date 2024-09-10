@@ -13,7 +13,6 @@ set(SRC_FILES
         Image.cpp
         ImageEditor.cpp
         main.cpp
-        UiComponents.cpp
         WindowManager.cpp
 )
 

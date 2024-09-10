@@ -39,21 +39,28 @@ bool InitializeWindow() {
     return true;
 }
 
+
 bool ProcessEvents() {
     SDL_Event event;
+
     while (SDL_PollEvent(&event)) {
         ImGui_ImplSDL2_ProcessEvent(&event);
-        if (event.type == SDL_QUIT)
+
+        if (event.type == SDL_QUIT) {
             return true;
+        }
     }
+
     return false;
 }
+
 
 void StartImGuiFrame() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
 }
+
 
 void RenderFrame() {
     ImGui::Render();
@@ -64,6 +71,7 @@ void RenderFrame() {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     SDL_GL_SwapWindow(window);
 }
+
 
 void Cleanup() {
     ImGui_ImplOpenGL3_Shutdown();

@@ -119,7 +119,6 @@ void ImageEditor::RenderImageViewer(float width, float height) {
 }
 
 
-
 void ImageEditor::HandleImageViewer() {
     ImGuiIO &io = ImGui::GetIO();
 
@@ -221,6 +220,7 @@ void ImageEditor::RenderImageInfo() {
     }
 }
 
+
 void ImageEditor::RenderHistogram() {
     std::vector<cv::Mat> hist = image.CalculateNormalizedHistogram();
 
@@ -252,6 +252,7 @@ void ImageEditor::RenderHistogram() {
         ImPlot::EndPlot();
     }
 }
+
 
 void ImageEditor::RenderExifMetadata() {
     if (ImGui::BeginTable("ExifMetadataTable", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
