@@ -6,12 +6,12 @@
 
 class LayerBase {
 public:
-    void SetImage(const cv::UMat& in_image) {
+    virtual void SetImage(const cv::UMat& in_image) {
         image = in_image.clone();
         adjusted_image = in_image.clone();
     }
 
-    cv::UMat GetAdjustedImage() { return adjusted_image; }
+    virtual cv::UMat GetAdjustedImage() { return adjusted_image; }
 
     virtual void Apply() {
         if (image.empty()) {

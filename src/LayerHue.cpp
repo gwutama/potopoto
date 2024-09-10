@@ -1,26 +1,42 @@
 #include "LayerHue.h"
 
+void LayerHue::SetImage(const cv::UMat &in_image) {
+    LayerBase::SetImage(in_image);
+
+    // Split the HSV image into separate channels
+    cv::split(image, hsv_channels);
+    hsv_channels_adjusted = hsv_channels;
+}
+
+
 void LayerHue::Process() {
     // Input image is HSV - Output image is HSV
     if (hue == 0.0f) {
         return;
     }
 
-    // Split the HSV image into separate channels
-    std::vector<cv::Mat> hsv_channels;
-    cv::split(image, hsv_channels);
-
     // Adjust the hue channel
-    hsv_channels[0].convertTo(hsv_channels[0], CV_32F); // Convert to float for adjustment
-    hsv_channels[0] += hue; // Adjust the hue by the given value
+    hsv_channels[0].convertTo(hsv_channels_adjusted[0], CV_32F); // Convert to float for precise adjustment
 
-    // Ensure hue values wrap around [0, 179]
-    cv::threshold(hsv_channels[0], hsv_channels[0], 179, 0, cv::THRESH_TOZERO_INV);
-    cv::threshold(hsv_channels[0], hsv_channels[0], 0, 179, cv::THRESH_TOZERO);
+    // Add the hue adjustment value
+    cv::add(hsv_channels_adjusted[0], hue, hsv_channels_adjusted[0]);
+
+    // Correct hue values to be in range [0, 179] using modulo operation
+    cv::UMat mod_180;
+    cv::threshold(hsv_channels_adjusted[0], mod_180, 179, 0, cv::THRESH_TRUNC); // Threshold values to max of 179
 
     // Convert hue back to 8-bit
-    hsv_channels[0].convertTo(hsv_channels[0], CV_8U);
+    hsv_channels_adjusted[0].convertTo(hsv_channels_adjusted[0], CV_8U);
+}
 
-    // Merge the channels back
-    cv::merge(hsv_channels, adjusted_image);
+
+cv::UMat LayerHue::GetAdjustedImage() {
+    if (hue == 0.0f) {
+        return image;
+    }
+
+    // Merge the channels back into the final HSV image
+    cv::merge(hsv_channels_adjusted, adjusted_image);
+
+    return adjusted_image;
 }

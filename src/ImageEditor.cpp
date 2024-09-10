@@ -115,8 +115,8 @@ void ImageEditor::HandleCloseImage() {
     last_contrast = 1.0f;
     hue = 0.0f;
     last_hue = 0.0f;
-    saturation = 1.0f;
-    last_saturation = 1.0f;
+    saturation = 0.0f;
+    last_saturation = 0.0f;
 }
 
 
@@ -246,8 +246,8 @@ void ImageEditor::RenderImageAdjustments() {
     ImGui::Text("Adjustments");
     ImGui::SliderFloat("Brightness", &brightness, 0.0f, 2.0f);
     ImGui::SliderFloat("Contrast", &contrast, 0.0f, 2.0f);
-    ImGui::SliderFloat("Hue", &hue, 0.0f, 360.0f);
-    ImGui::SliderFloat("Saturation", &saturation, 0.0f, 2.0f);
+    ImGui::SliderFloat("Hue", &hue, 0.0f, 179.0f);
+    ImGui::SliderFloat("Saturation", &saturation, 0.0f, 255.0f);
     ImGui::EndChild();
 }
 

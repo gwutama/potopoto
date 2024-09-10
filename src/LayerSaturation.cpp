@@ -1,24 +1,40 @@
 #include "LayerSaturation.h"
 
+void LayerSaturation::SetImage(const cv::UMat &in_image) {
+    LayerBase::SetImage(in_image);
+
+    // Split the HSV image into separate channels
+    cv::split(image, hsv_channels);
+    hsv_channels_adjusted = hsv_channels;
+}
+
+
 void LayerSaturation::Process() {
     // Input image is HSV - Output image is HSV
-    if (saturation == 1.0f) {
+    if (saturation == 0.0f) {
         return;
     }
 
-    // Split the HSV image into separate channels
-    std::vector<cv::Mat> hsv_channels;
-    cv::split(image, hsv_channels);
-
     // Adjust the saturation channel
-    hsv_channels[1].convertTo(hsv_channels[1], CV_32F); // Convert to float for scaling
-    hsv_channels[1] *= saturation; // Apply saturation scale
+    hsv_channels[1].convertTo(hsv_channels_adjusted[1], CV_32F); // Convert to float for precise adjustment
 
-    // Clamp values to the range [0, 255]
-    cv::threshold(hsv_channels[1], hsv_channels[1], 255, 255, cv::THRESH_TRUNC); // Max saturation is 255
-    cv::threshold(hsv_channels[1], hsv_channels[1], 0, 0, cv::THRESH_TOZERO); // Min saturation is 0
-    hsv_channels[1].convertTo(hsv_channels[1], CV_8U); // Convert back to 8-bit
+    cv::add(hsv_channels_adjusted[1], saturation, hsv_channels_adjusted[1]);
 
-    // Merge the channels back
-    cv::merge(hsv_channels, adjusted_image);
+    // Correct hue values to be in range [0, 255] using modulo operation
+    cv::UMat mod_180;
+    cv::threshold(hsv_channels_adjusted[1], mod_180, 255, 0, cv::THRESH_TRUNC); // Threshold values to max of 255
+
+    hsv_channels_adjusted[1].convertTo(hsv_channels_adjusted[1], CV_8U); // Convert back to 8-bit
+}
+
+
+cv::UMat LayerSaturation::GetAdjustedImage() {
+    if (saturation == 0.0f) {
+        return image;
+    }
+
+    // Merge the channels back into the final HSV image
+    cv::merge(hsv_channels_adjusted, adjusted_image);
+
+    return adjusted_image;
 }

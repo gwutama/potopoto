@@ -8,7 +8,9 @@ public:
     LayerSaturation() {}
     ~LayerSaturation() {}
 
+    void SetImage(const cv::UMat& in_image) override;
     void SetSaturation(float in_saturation) { saturation = in_saturation; }
+    cv::UMat GetAdjustedImage() override;
 
 protected:
     std::string GetName() override { return "Saturation"; }
@@ -16,6 +18,8 @@ protected:
 
 private:
     float saturation;
+    std::vector<cv::UMat> hsv_channels;
+    std::vector<cv::UMat> hsv_channels_adjusted;
 };
 
 

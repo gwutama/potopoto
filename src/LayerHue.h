@@ -8,7 +8,9 @@ public:
     LayerHue() {}
     ~LayerHue() {}
 
+    void SetImage(const cv::UMat& in_image) override;
     void SetHue(float in_hue) { hue = in_hue; }
+    cv::UMat GetAdjustedImage() override;
 
 protected:
     std::string GetName() override { return "Hue"; }
@@ -16,6 +18,8 @@ protected:
 
 private:
     float hue;
+    std::vector<cv::UMat> hsv_channels;
+    std::vector<cv::UMat> hsv_channels_adjusted;
 };
 
 
