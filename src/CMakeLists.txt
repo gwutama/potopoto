@@ -10,10 +10,9 @@ find_package(Iconv)
 
 # Define the source files
 set(SRC_FILES
+        Image.cpp
         ImageEditor.cpp
-        ImageLoader.cpp
         main.cpp
-        Toolbar.cpp
         UiComponents.cpp
         WindowManager.cpp
 )
