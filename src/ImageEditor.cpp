@@ -109,14 +109,16 @@ void ImageEditor::HandleCloseImage() {
     image_texture = 0;
     active_tool = ActiveTool::Hand;
     zoom = 1.0f;
-    brightness = 1.0f;
-    last_brightness = 1.0f;
-    contrast = 1.0f;
-    last_contrast = 1.0f;
-    hue = 0.0f;
-    last_hue = 0.0f;
-    saturation = 0.0f;
-    last_saturation = 0.0f;
+    brightness = LayerBrightnessContrast::DEFAULT_BRIGHTNESS;
+    last_brightness = LayerBrightnessContrast::DEFAULT_BRIGHTNESS;
+    contrast = LayerBrightnessContrast::DEFAULT_CONTRAST;
+    last_contrast = LayerBrightnessContrast::DEFAULT_CONTRAST;
+    hue = LayerHueSaturationValue::DEFAULT_HUE;
+    last_hue = LayerHueSaturationValue::DEFAULT_HUE;
+    saturation = LayerHueSaturationValue::DEFAULT_SATURATION;
+    last_saturation = LayerHueSaturationValue::DEFAULT_SATURATION;
+    value = LayerHueSaturationValue::DEFAULT_VALUE;
+    last_value = LayerHueSaturationValue::DEFAULT_VALUE;
 }
 
 
@@ -171,29 +173,13 @@ void ImageEditor::RenderImageViewer() {
     bool adjustmentsHaveChanged = ImageAdjustmentsHaveChanged();
 
     if (adjustmentsHaveChanged) {
-        // Execute each adjustment in an individual thread before combining them
-        // Adjustments are done in parallel sections
-#pragma omp parallel sections
-        {
-#pragma omp section
-            {
-                image.AdjustBrightness(brightness);
-            }
-#pragma omp section
-            {
-                image.AdjustContrast(contrast);
-            }
-#pragma omp section
-            {
-                image.AdjustHue(hue);
-            }
-#pragma omp section
-            {
-                image.AdjustSaturation(saturation);
-            }
-        }
+        image.AdjustBrightness(brightness);
+        image.AdjustContrast(contrast);
+        image.AdjustHue(hue);
+        image.AdjustSaturation(saturation);
+        image.AdjustValue(value);
 
-        image.CombineAdjustmentLayers();
+        image.ApplyAdjustments();
 
         // Update the texture with the adjusted image
         image.LoadToTexture(image_texture);
@@ -246,18 +232,20 @@ void ImageEditor::RenderImageAdjustments() {
     ImGui::Text("Adjustments");
     ImGui::SliderFloat("Brightness", &brightness, 0.0f, 2.0f);
     ImGui::SliderFloat("Contrast", &contrast, 0.0f, 2.0f);
-    ImGui::SliderFloat("Hue", &hue, 0.0f, 179.0f);
-    ImGui::SliderFloat("Saturation", &saturation, 0.0f, 255.0f);
+    ImGui::SliderFloat("Hue", &hue, 0.0f, 180.0f);
+    ImGui::SliderFloat("Saturation", &saturation, -255.0f, 255.0f);
+    ImGui::SliderFloat("Value", &value, 0.0f, 255.0f);
     ImGui::EndChild();
 }
 
 
 bool ImageEditor::ImageAdjustmentsHaveChanged() {
-    if (brightness != last_brightness || contrast != last_contrast || hue != last_hue || saturation != last_saturation) {
+    if (brightness != last_brightness || contrast != last_contrast || hue != last_hue || saturation != last_saturation || value != last_value) {
         last_brightness = brightness;
         last_contrast = contrast;
         last_hue = hue;
         last_saturation = saturation;
+        last_value = value;
         return true;
     }
 

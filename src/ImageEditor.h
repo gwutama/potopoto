@@ -41,6 +41,8 @@ private:
     float last_hue;
     float saturation;
     float last_saturation;
+    float value;
+    float last_value;
 };
 
 #endif //POTOPOTO_IMAGEEDITOR_H

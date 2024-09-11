@@ -6,15 +6,14 @@
 
 class LayerBase {
 public:
-    virtual void SetImage(const cv::UMat& in_image) {
-        image = in_image.clone();
-        adjusted_image = in_image.clone();
+    virtual void SetImage(std::shared_ptr<cv::UMat> in_image) {
+        image_adjusted = in_image;
     }
 
-    virtual cv::UMat GetAdjustedImage() { return adjusted_image; }
+    virtual std::shared_ptr<cv::UMat> GetAdjustedImage() { return image_adjusted; }
 
     virtual void Apply() {
-        if (image.empty()) {
+        if (image_adjusted == nullptr || image_adjusted->empty()) {
             std::cerr << "Layer " << GetName() << " has no image to process." << std::endl;
             return;
         }
@@ -27,8 +26,7 @@ protected:
     virtual void Process() = 0;
 
 protected:
-    cv::UMat image;
-    cv::UMat adjusted_image;
+    std::shared_ptr<cv::UMat> image_adjusted;
 };
 
 

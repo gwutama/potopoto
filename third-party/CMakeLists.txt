@@ -20,8 +20,8 @@ target_include_directories(imgui PUBLIC imgui imgui/backends)
 
 
 # SDL2
-option(SDL_SHARED "Build shared library" OFF)
-option(SDL_STATIC "Build static library" ON)
+set(SDL_SHARED OFF CACHE BOOL "" FORCE)
+set(SDL_STATIC ON CACHE BOOL "" FORCE)
 add_subdirectory(SDL)
 target_link_libraries(imgui PUBLIC SDL2::SDL2)
 
@@ -39,7 +39,10 @@ target_include_directories(tinyfiledialogs PUBLIC tinyfiledialogs)
 
 # OpenCV
 set(OpenCV_DIR ${CMAKE_SOURCE_DIR}/third-party/opencv)
-set(WITH_OBSENSOR OFF)
+set(WITH_OBSENSOR OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(BUILD_PERF_TESTS OFF CACHE BOOL "" FORCE)
 
 # Add OpenCV as a subdirectory
 add_subdirectory(opencv)
@@ -48,12 +51,12 @@ add_subdirectory(opencv)
 target_link_libraries(imgui PUBLIC ${OpenCV_LIBS})
 
 # Exiv2
-set(BUILD_SHARED_LIBS OFF)
-set(EXIV2_ENABLE_XMP OFF)
-set(EXIV2_ENABLE_PNG OFF)
-set(EXIV2_ENABLE_BROTLI OFF)
-set(EXIV2_ENABLE_INIH OFF)
-#set(EXIV2_ENABLE_FILESYSTEM_ACCESS OFF)
-set(EXIV2_BUILD_EXIV2_COMMAND OFF)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(EXIV2_ENABLE_XMP OFF CACHE BOOL "" FORCE)
+set(EXIV2_ENABLE_PNG OFF CACHE BOOL "" FORCE)
+set(EXIV2_ENABLE_BROTLI OFF CACHE BOOL "" FORCE)
+set(EXIV2_ENABLE_INIH OFF CACHE BOOL "" FORCE)
+set(EXIV2_ENABLE_FILESYSTEM_ACCESS ON CACHE BOOL "" FORCE)
+set(EXIV2_BUILD_EXIV2_COMMAND OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(exiv2)

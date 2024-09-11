@@ -4,7 +4,6 @@
 #include <exiv2/exiv2.hpp>
 #include <sstream>
 #include <sys/stat.h>
-#include <omp.h>
 
 #include "ImageUtils.h"
 
@@ -19,21 +18,25 @@ Image::~Image() {}
 bool Image::Open(const std::string& in_filename) {
     Close();
 
-    cv::imread(in_filename, cv::IMREAD_UNCHANGED).copyTo(original_image);
+    cv::UMat image;
+    cv::imread(in_filename, cv::IMREAD_UNCHANGED).copyTo(image);
 
-    if (original_image.empty()) {
+    if (image.empty()) {
         std::cerr << "Error: Could not load image file: " << in_filename << std::endl;
         Close();
         return false;
     }
 
+    original_image = std::make_shared<cv::UMat>(image.clone());
+    image.release();
+
     // Convert to RGBA format if necessary
-    if (original_image.channels() == 1) {
-        cv::cvtColor(original_image, original_image, cv::COLOR_GRAY2RGBA);
-    } else if (original_image.channels() == 3) {
-        cv::cvtColor(original_image, original_image, cv::COLOR_BGR2RGBA);
-    } else if (original_image.channels() != 4) {
-        std::cerr << "Error: Unsupported image format with " << original_image.channels() << " channels." << std::endl;
+    if (original_image->channels() == 1) {
+        cv::cvtColor(*original_image, *original_image, cv::COLOR_GRAY2RGBA);
+    } else if (original_image->channels() == 3) {
+        cv::cvtColor(*original_image, *original_image, cv::COLOR_BGR2RGBA);
+    } else if (original_image->channels() != 4) {
+        std::cerr << "Error: Unsupported image format with " << original_image->channels() << " channels." << std::endl;
         Close();
         return false;
     }
@@ -42,22 +45,26 @@ bool Image::Open(const std::string& in_filename) {
     LoadImageInfo();
     LoadExifMetadata(in_filename);
 
-    adjusted_image = original_image.clone();
-
-    brightness_layer.SetImage(original_image);
-    contrast_layer.SetImage(original_image);
-
-    cv::UMat hsv_image = ImageUtils::RgbaToHsv(original_image);
-    hue_layer.SetImage(hsv_image);
-    saturation_layer.SetImage(hsv_image);
+    adjusted_image = std::make_shared<cv::UMat>(original_image->clone());
 
     return true;
 }
 
 
+bool Image::IsOpen() const {
+    return original_image != nullptr && !original_image->empty();
+}
+
+
 void Image::Close() {
-    original_image.release();
-    adjusted_image.release();
+    if (original_image != nullptr) {
+        original_image->release();
+    }
+
+    if (adjusted_image != nullptr) {
+        adjusted_image->release();
+    }
+
     file_info.clear();
     image_info.clear();
     image_exif.clear();
@@ -65,17 +72,25 @@ void Image::Close() {
 
 
 bool Image::Save(const std::string& out_filename) const {
-    return cv::imwrite(out_filename, adjusted_image);
+    if (adjusted_image == nullptr || adjusted_image->empty()) {
+        return false;
+    }
+
+    return cv::imwrite(out_filename, *adjusted_image);
 }
 
 
 void Image::LoadToTexture(GLuint& texture) {
+    if (adjusted_image == nullptr || adjusted_image->empty()) {
+        return;
+    }
+
     if (texture) {
         glDeleteTextures(1, &texture);
     }
 
     // Download the data from UMat to Mat
-    cv::Mat imageMat = adjusted_image.getMat(cv::ACCESS_READ);
+    cv::Mat imageMat = adjusted_image->getMat(cv::ACCESS_READ);
 
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
@@ -115,16 +130,16 @@ void Image::LoadFileInfo(const std::string& filename) {
 
 
 void Image::LoadImageInfo() {
-    if (original_image.empty()) {
+    if (original_image == nullptr || original_image->empty()) {
         return;
     }
 
     image_info.clear();
-    image_info.insert(std::make_pair("Width", std::to_string(original_image.cols) + " px"));
-    image_info.insert(std::make_pair("Height", std::to_string(original_image.rows) + " px"));
-    image_info.insert(std::make_pair("Channels", std::to_string(original_image.channels())));
-    image_info.insert(std::make_pair("Number of Pixels", std::to_string(original_image.total()) + " px"));
-    image_info.insert(std::make_pair("Image Size", std::to_string(original_image.total() * original_image.elemSize()) + " b"));
+    image_info.insert(std::make_pair("Width", std::to_string(original_image->cols) + " px"));
+    image_info.insert(std::make_pair("Height", std::to_string(original_image->rows) + " px"));
+    image_info.insert(std::make_pair("Channels", std::to_string(original_image->channels())));
+    image_info.insert(std::make_pair("Number of Pixels", std::to_string(original_image->total()) + " px"));
+    image_info.insert(std::make_pair("Size", std::to_string(original_image->total() * original_image->elemSize()) + " b"));
 }
 
 
@@ -160,18 +175,18 @@ void Image::LoadExifMetadata(const std::string& filename) {
 std::vector<cv::Mat> Image::CalculateNormalizedHistogram() const {
     std::vector<cv::Mat> bgr_hist;
 
-    if (adjusted_image.empty()) {
+    if (adjusted_image == nullptr || adjusted_image->empty()) {
         return bgr_hist;
     }
 
     // Convert image to RGB if necessary
     cv::Mat imageRGB;
-    if (adjusted_image.channels() == 4) {
-        cv::cvtColor(adjusted_image, imageRGB, cv::COLOR_RGBA2RGB);
-    } else if (adjusted_image.channels() == 3) {
-        adjusted_image.copyTo(imageRGB);
+    if (adjusted_image->channels() == 4) {
+        cv::cvtColor(*adjusted_image, imageRGB, cv::COLOR_RGBA2RGB);
+    } else if (adjusted_image->channels() == 3) {
+        adjusted_image->copyTo(imageRGB);
     } else {
-        std::cerr << "Error: Unsupported image format with " << adjusted_image.channels() << " channels." << std::endl;
+        std::cerr << "Error: Unsupported image format with " << adjusted_image->channels() << " channels." << std::endl;
         return bgr_hist;
     }
 
@@ -216,40 +231,58 @@ std::vector<cv::Mat> Image::CalculateNormalizedHistogram() const {
 
 
 void Image::AdjustBrightness(float value) {
-    brightness_layer.SetBrightness(value);
-    brightness_layer.Apply();
+    if (adjusted_image == nullptr || adjusted_image->empty()) {
+        return;
+    }
+
+    brightness_contrast_adjustments_layer.SetBrightness(value);
 }
 
 
 void Image::AdjustContrast(float value) {
-    contrast_layer.SetContrast(value);
-    contrast_layer.Apply();
+    if (adjusted_image == nullptr || adjusted_image->empty()) {
+        return;
+    }
+
+    brightness_contrast_adjustments_layer.SetContrast(value);
 }
 
 
 void Image::AdjustHue(float value) {
-    hue_layer.SetHue(value);
-    hue_layer.Apply();
+    if (adjusted_image == nullptr || adjusted_image->empty()) {
+        return;
+    }
+
+    hsv_adjustments_layer.SetHue(value);
 }
 
 
 void Image::AdjustSaturation(float value) {
-    saturation_layer.SetSaturation(value);
-    saturation_layer.Apply();
+    if (adjusted_image == nullptr || adjusted_image->empty()) {
+        return;
+    }
+
+    hsv_adjustments_layer.SetSaturation(value);
 }
 
 
-void Image::CombineAdjustmentLayers() {
-    // RGBA images
-    cv::UMat brightness_image = brightness_layer.GetAdjustedImage();
-    cv::UMat contrast_image = contrast_layer.GetAdjustedImage();
+void Image::AdjustValue(float value) {
+    if (adjusted_image == nullptr || adjusted_image->empty()) {
+        return;
+    }
 
-    // Combine the HSV images and convert to RGBA
-    cv::UMat hue_image = hue_layer.GetAdjustedImage();
-    cv::UMat saturation_image = saturation_layer.GetAdjustedImage();
-    cv::UMat hsv_hue_saturation_image = ImageUtils::CombineHsvImages({hue_image, saturation_image});
-    cv::UMat hue_saturation_image = ImageUtils::HsvToRgba(hsv_hue_saturation_image);
+    hsv_adjustments_layer.SetValue(value);
+}
 
-    // Combine the RGBA images
-    adjusted_image = ImageUtils::CombineRgbaImages({brightness_image, contrast_image, hue_saturation_image});
+
+void Image::ApplyAdjustments() {
+    if (adjusted_image == nullptr || adjusted_image->empty()) {
+        return;
+    }
+
+    adjusted_image = std::make_shared<cv::UMat>(original_image->clone());
+    brightness_contrast_adjustments_layer.SetImage(adjusted_image);
+    brightness_contrast_adjustments_layer.Apply();
+    hsv_adjustments_layer.SetImage(adjusted_image);
+    hsv_adjustments_layer.Apply();
 }

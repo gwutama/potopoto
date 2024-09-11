@@ -11,10 +11,8 @@
 #include <GL/gl.h>
 #endif
 
-#include "LayerBrightness.h"
-#include "LayerContrast.h"
-#include "LayerHue.h"
-#include "LayerSaturation.h"
+#include "LayerBrightnessContrast.h"
+#include "LayerHueSaturationValue.h"
 
 class Image {
 public:
@@ -22,14 +20,14 @@ public:
     ~Image();
 
     bool Open(const std::string& in_filename);
-    bool IsOpen() const { return !original_image.empty(); }
+    bool IsOpen() const;
     void Close();
     bool Save(const std::string& out_filename) const;
 
     void LoadToTexture(GLuint& texture);
 
-    int GetWidth() const { return adjusted_image.cols; }
-    int GetHeight() const { return adjusted_image.rows; }
+    int GetWidth() const { return adjusted_image->cols; }
+    int GetHeight() const { return adjusted_image->rows; }
     std::map<std::string, std::string> GetFileInfo() const { return file_info; }
     std::map<std::string, std::string> GetImageInfo() const { return image_info; }
     std::map<std::string, std::string> GetExifMetadata() const { return image_exif; }
@@ -40,7 +38,8 @@ public:
     void AdjustContrast(float value);
     void AdjustHue(float value);
     void AdjustSaturation(float value);
-    void CombineAdjustmentLayers();
+    void AdjustValue(float value);
+    void ApplyAdjustments();
 
 private:
     void LoadFileInfo(const std::string& filename);
@@ -48,17 +47,15 @@ private:
     void LoadExifMetadata(const std::string& filename);
 
 private:
-    cv::UMat original_image;
-    cv::UMat adjusted_image;
+    std::shared_ptr<cv::UMat> original_image;
+    std::shared_ptr<cv::UMat> adjusted_image;
 
     std::map<std::string, std::string> file_info;
     std::map<std::string, std::string> image_info;
     std::map<std::string, std::string> image_exif;
 
-    LayerBrightness brightness_layer;
-    LayerContrast contrast_layer;
-    LayerHue hue_layer;
-    LayerSaturation saturation_layer;
+    LayerBrightnessContrast brightness_contrast_adjustments_layer;
+    LayerHueSaturationValue hsv_adjustments_layer;
 };
 
 #endif //POTOPOTO_IMAGE_H
