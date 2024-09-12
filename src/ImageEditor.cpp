@@ -23,9 +23,7 @@ void ImageEditor::Render() {
     ImGui::SetNextWindowPos(main_window_pos);
     ImGui::SetNextWindowSize(main_window_size);
 
-    ImGui::Begin("MainLayout", NULL,
-                 ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
-                 ImGuiWindowFlags_NoTitleBar);
+    ImGui::Begin("MainLayout", nullptr, ImGuiWindowFlags_NoDecoration);
 
     if (!image.IsOpen()) {
         ImGui::BeginDisabled();
@@ -37,16 +35,17 @@ void ImageEditor::Render() {
 
     ImVec2 available_size = ImGui::GetContentRegionAvail();
     float right_pane_width = 400;
-    float left_pane_width = available_size.x - right_pane_width;
+    float left_pane_width = available_size.x - right_pane_width - 8; // magic number
 
     // Remove decoration and scrollbars from the LeftPane
-    ImGui::BeginChild("LeftPane", ImVec2(left_pane_width, available_size.y), false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    ImGui::BeginChild("LeftPane", ImVec2(left_pane_width, available_size.y), ImGuiChildFlags_None,
+                      ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar);
     RenderImageViewer();
     ImGui::EndChild();
 
     ImGui::SameLine();
 
-    ImGui::BeginChild("RightPane", ImVec2(right_pane_width, available_size.y), false);
+    ImGui::BeginChild("RightPane", ImVec2(right_pane_width, available_size.y));
     RenderImageAnalysisTabs();
     RenderImageAdjustments();
     ImGui::EndChild();
@@ -119,7 +118,7 @@ void ImageEditor::HandleCloseImage() {
 
 
 void ImageEditor::RenderToolbar() {
-    ImGui::BeginChild("Toolbar", ImVec2(50, 0), false);
+    ImGui::BeginChild("Toolbar", ImVec2(50, 100), ImGuiChildFlags_Borders);
 
     if (ImGui::Selectable("Zoom", active_tool == ActiveTool::Zoom)) {
         active_tool = ActiveTool::Zoom;
@@ -144,15 +143,35 @@ void ImageEditor::RenderImageViewer() {
     ImVec2 image_size = ImVec2(static_cast<float>(image.GetWidth()) * zoom, static_cast<float>(image.GetHeight()) * zoom);
     ImVec2 window_size = ImGui::GetContentRegionAvail();
 
-    ImGui::BeginChild("ImageViewer", window_size, ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar);
+    ImGui::BeginChild("ImageViewer", window_size, ImGuiChildFlags_Borders,
+                      ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar);
+
+    // Calculate the current mouse position relative to the image
+    ImVec2 mouse_pos = ImGui::GetMousePos();
+    ImVec2 window_pos = ImGui::GetWindowPos();
+    ImVec2 window_scroll = ImVec2(ImGui::GetScrollX(), ImGui::GetScrollY());
+
+    // Mouse position relative to the top-left corner of the image
+    ImVec2 mouse_pos_relative_to_image = ImVec2(
+            (mouse_pos.x - window_pos.x + window_scroll.x) / zoom,
+            (mouse_pos.y - window_pos.y + window_scroll.y) / zoom
+    );
 
     // Handle zooming if the Zoom tool is active and the window is hovered
     if (active_tool == ActiveTool::Zoom && ImGui::IsWindowHovered()) {
         if (io.MouseWheel != 0.0f) {
-            float zoom_factor = 1.1f; // Zoom speed factor
+            float zoom_factor = 1.02f; // Zoom speed factor
             zoom = (io.MouseWheel > 0.0f) ? zoom * zoom_factor : zoom / zoom_factor;
             zoom = std::clamp(zoom, 0.1f, 10.0f);
             io.WantCaptureMouse = true;
+
+            // Calculate new scroll offsets to keep mouse-centered point at the same location
+            ImVec2 new_scroll_offset;
+            new_scroll_offset.x = (mouse_pos_relative_to_image.x * zoom) - (mouse_pos.x - window_pos.x);
+            new_scroll_offset.y = (mouse_pos_relative_to_image.y * zoom) - (mouse_pos.y - window_pos.y);
+
+            ImGui::SetScrollX(new_scroll_offset.x);
+            ImGui::SetScrollY(new_scroll_offset.y);
         }
     }
 
@@ -166,6 +185,7 @@ void ImageEditor::RenderImageViewer() {
         }
     }
 
+    // Image adjustments
     image.AdjustBrightness(brightness);
     image.AdjustContrast(contrast);
     image.AdjustHue(hue);
@@ -179,8 +199,15 @@ void ImageEditor::RenderImageViewer() {
         image.LoadToTexture(image_texture);
     }
 
+    // Calculate offsets to center the image
+    float offset_x = std::max(0.0f, (window_size.x - image_size.x) * 0.5f);
+    float offset_y = std::max(0.0f, (window_size.y - image_size.y) * 0.5f);
+
+    // Set the cursor position to center the image
+    ImGui::SetCursorPos(ImVec2(offset_x, offset_y));
+
     // Render the image
-    ImGui::Image((void *) (intptr_t) image_texture, image_size);
+    ImGui::Image((void *)(intptr_t)image_texture, image_size);
 
     ImGui::EndChild();
 
