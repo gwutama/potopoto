@@ -151,3 +151,29 @@ cv::UMat ImageUtils::CombineRgbaImages(const std::vector<cv::UMat>& rgba_images)
 
     return combined_rgba;
 }
+
+
+void ImageUtils::ResizeImageByWidth(const cv::UMat& inputImage, cv::UMat& outputImage, int newWidth) {
+    // Get the original dimensions
+    int originalWidth = inputImage.cols;
+    int originalHeight = inputImage.rows;
+
+    // Calculate the new height to keep the aspect ratio
+    int newHeight = static_cast<int>(newWidth * originalHeight / originalWidth);
+
+    // Resize the image
+    cv::resize(inputImage, outputImage, cv::Size(newWidth, newHeight));
+}
+
+
+void ImageUtils::ResizeImageByHeight(const cv::UMat& inputImage, cv::UMat& outputImage, int newHeight) {
+    // Get the original dimensions
+    int originalWidth = inputImage.cols;
+    int originalHeight = inputImage.rows;
+
+    // Calculate the new width to keep the aspect ratio
+    int newWidth = static_cast<int>(newHeight * originalWidth / originalHeight);
+
+    // Resize the image
+    cv::resize(inputImage, outputImage, cv::Size(newWidth, newHeight));
+}

@@ -28,34 +28,35 @@ public:
 
     int GetWidth() const { return adjusted_image->cols; }
     int GetHeight() const { return adjusted_image->rows; }
-    std::map<std::string, std::string> GetFileInfo() const { return file_info; }
-    std::map<std::string, std::string> GetImageInfo() const { return image_info; }
-    std::map<std::string, std::string> GetExifMetadata() const { return image_exif; }
 
-    std::vector<cv::Mat> CalculateNormalizedHistogram() const;
+    std::unordered_map<std::string, std::string> GetImageInfo() const { return image_info; }
+
+    std::vector<cv::Mat> GetHistogram() const { return bgr_histogram; }
 
     void AdjustBrightness(float value);
     void AdjustContrast(float value);
     void AdjustHue(float value);
     void AdjustSaturation(float value);
     void AdjustValue(float value);
-    void ApplyAdjustments();
+    bool ApplyAdjustments();
 
 private:
-    void LoadFileInfo(const std::string& filename);
-    void LoadImageInfo();
-    void LoadExifMetadata(const std::string& filename);
+    void UpdateImageInfo();
+    void UpdateHistogram();
 
 private:
     std::shared_ptr<cv::UMat> original_image;
     std::shared_ptr<cv::UMat> adjusted_image;
-
-    std::map<std::string, std::string> file_info;
-    std::map<std::string, std::string> image_info;
-    std::map<std::string, std::string> image_exif;
+    std::shared_ptr<cv::UMat> original_image_small;
+    std::shared_ptr<cv::UMat> adjusted_image_histogram;
+    std::vector<cv::Mat> bgr_histogram;
+    std::unordered_map<std::string, std::string> image_info;
 
     LayerBrightnessContrast brightness_contrast_adjustments_layer;
     LayerHueSaturationValue hsv_adjustments_layer;
+
+    LayerBrightnessContrast brightness_contrast_adjustments_layer_hist;
+    LayerHueSaturationValue hsv_adjustments_layer_hist;
 };
 
 #endif //POTOPOTO_IMAGE_H

@@ -9,10 +9,30 @@ LayerBrightnessContrast::LayerBrightnessContrast() : brightness(DEFAULT_BRIGHTNE
 }
 
 
-void LayerBrightnessContrast::Process() {
+void LayerBrightnessContrast::SetBrightness(float in_brightness) {
+    if (brightness == in_brightness) {
+        return;
+    }
+
+    brightness = in_brightness;
+    values_have_changed = true;
+}
+
+
+void LayerBrightnessContrast::SetContrast(float in_contrast) {
+    if (contrast == in_contrast) {
+        return;
+    }
+
+    contrast = in_contrast;
+    values_have_changed = true;
+}
+
+
+bool LayerBrightnessContrast::Process() {
     // Input image is RGBA - Output image is RGBA
     if (brightness == DEFAULT_BRIGHTNESS && contrast == DEFAULT_CONTRAST) {
-        return;
+        return false;
     }
 
     // Combine brightness and contrast in a single convertTo call
@@ -20,5 +40,8 @@ void LayerBrightnessContrast::Process() {
     float beta = 128 * (1 - contrast);   // combined offset for contrast adjustment
 
     image_adjusted->convertTo(*image_adjusted, -1, alpha, beta);
+    values_have_changed = false;
+
+    return true;
 }
 

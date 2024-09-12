@@ -4,17 +4,21 @@
 #include <sys/stat.h>
 
 
-void MetadataReader::Load(const std::string& in_filename, std::shared_ptr<cv::Mat> in_image) {
+void MetadataReader::Load(const std::string& in_filename) {
     LoadFileInfo(in_filename);
-    LoadImageInfo(in_image);
     LoadExifMetadata(in_filename);
 }
 
 
 void MetadataReader::LoadFileInfo(const std::string& filename) {
+    file_info.clear();
+
     struct stat file_stat{};
 
     if (stat(filename.c_str(), &file_stat) == 0) {
+        // File name
+        file_info.insert(std::make_pair("File Name", filename));
+
         // File size
         file_info.insert(std::make_pair("File Size", std::to_string(file_stat.st_size) + " b"));
 
@@ -39,21 +43,9 @@ void MetadataReader::LoadFileInfo(const std::string& filename) {
 }
 
 
-void MetadataReader::LoadImageInfo(std::shared_ptr<cv::Mat> in_image) {
-    if (in_image == nullptr || in_image->empty()) {
-        return;
-    }
-
-    image_info.clear();
-    image_info.insert(std::make_pair("Width", std::to_string(in_image->cols) + " px"));
-    image_info.insert(std::make_pair("Height", std::to_string(in_image->rows) + " px"));
-    image_info.insert(std::make_pair("Channels", std::to_string(in_image->channels())));
-    image_info.insert(std::make_pair("Number of Pixels", std::to_string(in_image->total()) + " px"));
-    image_info.insert(std::make_pair("Size", std::to_string(in_image->total() * in_image->elemSize()) + " b"));
-}
-
-
 void MetadataReader::LoadExifMetadata(const std::string& filename) {
+    image_exif.clear();
+
     try {
         Exiv2::Image::UniquePtr my_image = Exiv2::ImageFactory::open(filename);
 

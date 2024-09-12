@@ -8,9 +8,12 @@ public:
     LayerHueSaturationValue();
     ~LayerHueSaturationValue() {}
 
-    void SetHue(float in_hue) { hue = in_hue; }
-    void SetSaturation(float in_saturation) { saturation = in_saturation; }
-    void SetValue(float in_value) { value = in_value; }
+    void SetHue(float in_hue);
+    void SetSaturation(float in_saturation);
+    void SetValue(float in_value);
+    void SetHighPrecision(bool in_high_precision) { high_precision = in_high_precision; }
+
+    bool ParametersHaveChanged() override { return values_have_changed; }
 
     static const float DEFAULT_HUE;
     static const float DEFAULT_SATURATION;
@@ -18,12 +21,14 @@ public:
 
 protected:
     std::string GetName() override { return "HueSaturationValue"; }
-    void Process() override;
+    bool Process() override;
 
 private:
     float hue;
     float saturation;
     float value;
+    bool values_have_changed;
+    bool high_precision;
 };
 
 

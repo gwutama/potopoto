@@ -8,19 +8,22 @@ public:
     LayerBrightnessContrast();
     ~LayerBrightnessContrast() {}
 
-    void SetBrightness(float in_brightness) { brightness = in_brightness; }
-    void SetContrast(float in_contrast) { contrast = in_contrast; }
+    void SetBrightness(float in_brightness);
+    void SetContrast(float in_contrast);
+
+    bool ParametersHaveChanged() override { return values_have_changed; }
 
     static const float DEFAULT_BRIGHTNESS;
     static const float DEFAULT_CONTRAST;
 
 protected:
     std::string GetName() override { return "BrightnessContrast"; }
-    void Process() override;
+    bool Process() override;
 
 private:
     float brightness;
     float contrast;
+    bool values_have_changed;
 };
 
 

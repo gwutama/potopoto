@@ -94,6 +94,7 @@ void ImageEditor::HandleLoadImage(const std::string &filename) {
         return;
     }
 
+    metadata_reader.Load(filename);
     image.LoadToTexture(image_texture);
 }
 
@@ -110,15 +111,10 @@ void ImageEditor::HandleCloseImage() {
     active_tool = ActiveTool::Hand;
     zoom = 1.0f;
     brightness = LayerBrightnessContrast::DEFAULT_BRIGHTNESS;
-    last_brightness = LayerBrightnessContrast::DEFAULT_BRIGHTNESS;
     contrast = LayerBrightnessContrast::DEFAULT_CONTRAST;
-    last_contrast = LayerBrightnessContrast::DEFAULT_CONTRAST;
     hue = LayerHueSaturationValue::DEFAULT_HUE;
-    last_hue = LayerHueSaturationValue::DEFAULT_HUE;
     saturation = LayerHueSaturationValue::DEFAULT_SATURATION;
-    last_saturation = LayerHueSaturationValue::DEFAULT_SATURATION;
     value = LayerHueSaturationValue::DEFAULT_VALUE;
-    last_value = LayerHueSaturationValue::DEFAULT_VALUE;
 }
 
 
@@ -170,29 +166,25 @@ void ImageEditor::RenderImageViewer() {
         }
     }
 
-    bool adjustmentsHaveChanged = ImageAdjustmentsHaveChanged();
+    image.AdjustBrightness(brightness);
+    image.AdjustContrast(contrast);
+    image.AdjustHue(hue);
+    image.AdjustSaturation(saturation);
+    image.AdjustValue(value);
 
-    if (adjustmentsHaveChanged) {
-        image.AdjustBrightness(brightness);
-        image.AdjustContrast(contrast);
-        image.AdjustHue(hue);
-        image.AdjustSaturation(saturation);
-        image.AdjustValue(value);
+    bool is_image_adjusted = image.ApplyAdjustments();
 
-        image.ApplyAdjustments();
-
+    if (is_image_adjusted) {
         // Update the texture with the adjusted image
         image.LoadToTexture(image_texture);
     }
 
-
-    // Render the adjusted image
+    // Render the image
     ImGui::Image((void *) (intptr_t) image_texture, image_size);
 
     ImGui::EndChild();
 
-    if (adjustmentsHaveChanged) {
-        // Recalculate and display the histogram
+    if (is_image_adjusted) {
         RenderHistogram();
     }
 }
@@ -210,13 +202,18 @@ void ImageEditor::RenderImageAnalysisTabs() {
             ImGui::EndTabItem();
         }
 
-        if (ImGui::BeginTabItem("Info")) {
+        if (ImGui::BeginTabItem("Image")) {
             RenderImageInfo();
             ImGui::EndTabItem();
         }
 
         if (ImGui::BeginTabItem("EXIF")) {
             RenderExifMetadata();
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("File")) {
+            RenderFileInfo();
             ImGui::EndTabItem();
         }
 
@@ -230,26 +227,45 @@ void ImageEditor::RenderImageAnalysisTabs() {
 void ImageEditor::RenderImageAdjustments() {
     ImGui::BeginChild("Adjustments", ImVec2(0, 0), true);
     ImGui::Text("Adjustments");
-    ImGui::SliderFloat("Brightness", &brightness, 0.0f, 2.0f);
-    ImGui::SliderFloat("Contrast", &contrast, 0.0f, 2.0f);
-    ImGui::SliderFloat("Hue", &hue, 0.0f, 180.0f);
-    ImGui::SliderFloat("Saturation", &saturation, -255.0f, 255.0f);
-    ImGui::SliderFloat("Value", &value, 0.0f, 255.0f);
+    ImGui::SliderFloat("Brightness", &brightness, 0.0f, 2.0f, "%.2f");
+    ImGui::SliderFloat("Contrast", &contrast, 0.0f, 2.0f, "%.2f");
+    ImGui::SliderFloat("Hue", &hue, 0.0f, 180.0f, "%.0f");
+    ImGui::SliderFloat("Saturation", &saturation, -255.0f, 255.0f, "%.0f");
+    ImGui::SliderFloat("Value", &value, 0.0f, 255.0f, "%.0f");
     ImGui::EndChild();
 }
 
 
-bool ImageEditor::ImageAdjustmentsHaveChanged() {
-    if (brightness != last_brightness || contrast != last_contrast || hue != last_hue || saturation != last_saturation || value != last_value) {
-        last_brightness = brightness;
-        last_contrast = contrast;
-        last_hue = hue;
-        last_saturation = saturation;
-        last_value = value;
-        return true;
+void ImageEditor::RenderHistogram() {
+    std::vector<cv::Mat> hist = image.GetHistogram();
+
+    if (hist.size() != 3) { // BGR channels
+        return;
     }
 
-    return false;
+    int hist_size = 256;
+
+    // Display the histogram using ImGui (ImPlot must be initialized before using this)
+    ImVec2 plot_size = ImGui::GetContentRegionAvail();
+
+    if (ImPlot::BeginPlot("HistogramPlot", nullptr, nullptr, plot_size, ImPlotFlags_CanvasOnly | ImPlotFlags_NoFrame)) {
+        ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_NoDecorations);
+        ImPlot::SetupAxis(ImAxis_Y1, nullptr, ImPlotAxisFlags_NoDecorations);
+
+        ImPlot::PushStyleColor(ImPlotCol_Fill, ImVec4(0, 0, 1, 0.5f)); // Blue
+        ImPlot::PlotLine("Blue", hist.at(0).ptr<float>(), hist_size, 1, 0, ImPlotLineFlags_Shaded);
+        ImPlot::PopStyleColor();
+
+        ImPlot::PushStyleColor(ImPlotCol_Fill, ImVec4(0, 1, 0, 0.5f)); // Green
+        ImPlot::PlotLine("Green", hist.at(1).ptr<float>(), hist_size, 1, 0, ImPlotLineFlags_Shaded);
+        ImPlot::PopStyleColor();
+
+        ImPlot::PushStyleColor(ImPlotCol_Fill, ImVec4(1, 0, 0, 0.5f)); // Red
+        ImPlot::PlotLine("Red", hist.at(2).ptr<float>(), hist_size, 1, 0, ImPlotLineFlags_Shaded);
+        ImPlot::PopStyleColor();
+
+        ImPlot::EndPlot();
+    }
 }
 
 
@@ -266,40 +282,8 @@ void ImageEditor::RenderImageInfo() {
             ImGui::TableNextColumn();
             ImGui::Text("%s", info.second.c_str());
         }
+
         ImGui::EndTable();
-    }
-}
-
-
-void ImageEditor::RenderHistogram() {
-    std::vector<cv::Mat> hist = image.CalculateNormalizedHistogram();
-
-    if (hist.size() != 3) { // BGR channels
-        return;
-    }
-
-    int hist_size = 256;
-
-    // Display the histogram using ImGui (ImPlot must be initialized before using this)
-    ImVec2 plot_size = ImGui::GetContentRegionAvail();
-
-    if (ImPlot::BeginPlot("HistogramPlot", nullptr, nullptr, plot_size, ImPlotFlags_CanvasOnly)) {
-        ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_NoTickLabels);
-        ImPlot::SetupAxis(ImAxis_Y1, nullptr, ImPlotAxisFlags_NoTickLabels);
-
-        ImPlot::PushStyleColor(ImPlotCol_Line, IM_COL32(0, 0, 255, 255)); // Blue
-        ImPlot::PlotLine("Blue", hist.at(0).ptr<float>(), hist_size);
-        ImPlot::PopStyleColor();
-
-        ImPlot::PushStyleColor(ImPlotCol_Line, IM_COL32(0, 255, 0, 255)); // Green
-        ImPlot::PlotLine("Green", hist.at(1).ptr<float>(), hist_size);
-        ImPlot::PopStyleColor();
-
-        ImPlot::PushStyleColor(ImPlotCol_Line, IM_COL32(255, 0, 0, 255)); // Red
-        ImPlot::PlotLine("Red", hist.at(2).ptr<float>(), hist_size);
-        ImPlot::PopStyleColor();
-
-        ImPlot::EndPlot();
     }
 }
 
@@ -310,13 +294,33 @@ void ImageEditor::RenderExifMetadata() {
         ImGui::TableSetupColumn("Value");
         ImGui::TableHeadersRow();
 
-        for (const auto &info: image.GetExifMetadata()) {
+        for (const auto &info: metadata_reader.GetExifMetadata()) {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::Text("%s", info.first.c_str());
             ImGui::TableNextColumn();
             ImGui::Text("%s", info.second.c_str());
         }
+
+        ImGui::EndTable();
+    }
+}
+
+
+void ImageEditor::RenderFileInfo() {
+    if (ImGui::BeginTable("FileInfoTable", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+        ImGui::TableSetupColumn("Property");
+        ImGui::TableSetupColumn("Value");
+        ImGui::TableHeadersRow();
+
+        for (const auto &info: metadata_reader.GetFileInfo()) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", info.first.c_str());
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", info.second.c_str());
+        }
+
         ImGui::EndTable();
     }
 }
