@@ -33,6 +33,9 @@ bool InitializeWindow() {
     (void)io;
     ImGui::StyleColorsDark();
 
+    ImPlotStyle& plotStyle = ImPlot::GetStyle();
+    plotStyle.PlotPadding = ImVec2(0, 0); // Remove padding around the plot area
+
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init("#version 330");
 

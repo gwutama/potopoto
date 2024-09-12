@@ -279,16 +279,16 @@ void ImageEditor::RenderHistogram() {
         ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_NoDecorations);
         ImPlot::SetupAxis(ImAxis_Y1, nullptr, ImPlotAxisFlags_NoDecorations);
 
-        ImPlot::PushStyleColor(ImPlotCol_Fill, ImVec4(0, 0, 1, 0.5f)); // Blue
-        ImPlot::PlotLine("Blue", hist.at(0).ptr<float>(), hist_size, 1, 0, ImPlotLineFlags_Shaded);
+        ImPlot::PushStyleColor(ImPlotCol_Line, ImVec4(0.4, 0.4, 1, 1.0f)); // Blue
+        ImPlot::PlotLine("Blue", hist.at(0).ptr<float>(), hist_size, 1, 0, ImPlotLineFlags_None);
         ImPlot::PopStyleColor();
 
-        ImPlot::PushStyleColor(ImPlotCol_Fill, ImVec4(0, 1, 0, 0.5f)); // Green
-        ImPlot::PlotLine("Green", hist.at(1).ptr<float>(), hist_size, 1, 0, ImPlotLineFlags_Shaded);
+        ImPlot::PushStyleColor(ImPlotCol_Line, ImVec4(0.4, 1, 0.4, 1.0f)); // Green
+        ImPlot::PlotLine("Green", hist.at(1).ptr<float>(), hist_size, 1, 0, ImPlotLineFlags_None);
         ImPlot::PopStyleColor();
 
-        ImPlot::PushStyleColor(ImPlotCol_Fill, ImVec4(1, 0, 0, 0.5f)); // Red
-        ImPlot::PlotLine("Red", hist.at(2).ptr<float>(), hist_size, 1, 0, ImPlotLineFlags_Shaded);
+        ImPlot::PushStyleColor(ImPlotCol_Line, ImVec4(1, 0.4, 0.4, 1.0f)); // Red
+        ImPlot::PlotLine("Red", hist.at(2).ptr<float>(), hist_size, 1, 0, ImPlotLineFlags_None);
         ImPlot::PopStyleColor();
 
         ImPlot::EndPlot();
