@@ -38,8 +38,18 @@ endif()
 
 # Define the source files
 set(SRC_FILES
+        ui/Canvas.cpp
+        ui/Enums.h
+        ui/ExifMetadata.cpp
+        ui/FileInfo.cpp
+        ui/Histogram.cpp
+        ui/ImageAdjustments.cpp
+        ui/ImageEditor.cpp
+        ui/ImageInfo.cpp
+        ui/Menubar.cpp
+        ui/Toolbar.cpp
         Image.cpp
-        ImageEditor.cpp
+        ImageAdjustmentsParameters.h
         ImageUtils.cpp
         LayerBase.h
         LayerBrightnessContrast.cpp
@@ -71,6 +81,8 @@ include_directories(${CMAKE_SOURCE_DIR}/third-party/opencv/modules/video/include
 include_directories(${CMAKE_SOURCE_DIR}/third-party/opencv/modules/videoio/include)
 
 include_directories(${CMAKE_SOURCE_DIR}/third-party/exiv2/include)
+
+include_directories(${CMAKE_SOURCE_DIR}/third-party/sigslot/include)
 
 # Add executable
 add_executable(potopoto ${SRC_FILES})

@@ -5,7 +5,6 @@
 #include <SDL.h>
 
 bool InitializeWindow();
-void ApplyCustomStyle();
 bool ProcessEvents();
 void StartImGuiFrame();
 void RenderFrame();

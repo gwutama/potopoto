@@ -16,3 +16,6 @@
 [submodule "third-party/exiv2"]
 	path = third-party/exiv2
 	url = https://github.com/Exiv2/exiv2.git
+[submodule "third-party/sigslot"]
+	path = third-party/sigslot
+	url = https://github.com/palacaze/sigslot.git

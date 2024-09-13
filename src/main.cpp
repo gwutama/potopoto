@@ -1,5 +1,5 @@
 #include "WindowManager.h"
-#include "ImageEditor.h"
+#include "ui/ImageEditor.h"
 #include "exiv2.hpp"
 #include <opencv2/core/ocl.hpp>
 #include <omp.h>
