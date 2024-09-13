@@ -16,13 +16,8 @@
 
 class Image {
 public:
-    Image();
+    Image(const std::shared_ptr<cv::UMat>& in_image);
     ~Image();
-
-    bool Open(const std::string& in_filename);
-    bool IsOpen() const;
-    void Close();
-    bool Save(const std::string& out_filename) const;
 
     void LoadToTexture(GLuint& texture);
 

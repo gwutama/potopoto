@@ -2,20 +2,27 @@
 #include <imgui.h>
 #include <iostream>
 #include <algorithm>
+#include "../ImageReader.h"
 
 
 ImageEditor::ImageEditor() {
     HandleCloseImage(); // = reset
 
-    image = std::make_shared<Image>();
-    canvas.SetImage(image);
+    canvas.SetActiveTool(ActiveTool::Zoom);
 
     // connect signals to slots
     menubar.OpenSignal().connect(&ImageEditor::HandleOpenImage, this);
     menubar.SaveSignal().connect(&ImageEditor::HandleSaveImage, this);
     menubar.CloseSignal().connect(&ImageEditor::HandleCloseImage, this);
 
+    toolbar.ActiveToolChanged().connect(&Canvas::SetActiveTool, &canvas);
+
     image_adjustments.ParametersChanged().connect(&ImageEditor::OnImageAdjustmentsParametersChanged, this);
+}
+
+
+ImageEditor::~ImageEditor() {
+    HandleCloseImage();
 }
 
 
@@ -31,7 +38,7 @@ void ImageEditor::Render() {
 
     ImGui::Begin("MainLayout", nullptr, ImGuiWindowFlags_NoDecoration);
 
-    if (image == nullptr || !image->IsOpen()) {
+    if (image == nullptr) {
         ImGui::BeginDisabled();
     }
 
@@ -56,7 +63,7 @@ void ImageEditor::Render() {
     image_adjustments.Render();
     ImGui::EndChild();
 
-    if (image == nullptr || !image->IsOpen()) {
+    if (image == nullptr) {
         ImGui::EndDisabled();
     }
 
@@ -67,10 +74,15 @@ void ImageEditor::Render() {
 void ImageEditor::HandleOpenImage(const std::string &filename) {
     HandleCloseImage();
 
-    if (!image->Open(filename)) {
+    std::shared_ptr<cv::UMat> my_image = std::make_shared<cv::UMat>();
+
+    if (!ImageReader::Open(filename, my_image)) {
         std::cerr << "Error: Could not load image file: " << filename << std::endl;
         return;
     }
+
+    image = std::make_shared<Image>(my_image);
+    canvas.SetImage(image);
 
     metadata_reader.Load(filename);
     canvas.UpdateTexture();
@@ -84,7 +96,8 @@ void ImageEditor::HandleSaveImage() {
 
 void ImageEditor::HandleCloseImage() {
     if (image != nullptr) {
-        image->Close();
+        image.reset();
+        image = nullptr;
     }
 
     toolbar.Reset();
@@ -107,11 +120,9 @@ void ImageEditor::OnImageAdjustmentsParametersChanged(const ImageAdjustmentsPara
 void ImageEditor::RenderImageAnalysisTabs() {
     ImGui::BeginChild("Tabs", ImVec2(0, 200), true);
 
-    bool has_image = (image != nullptr && image->IsOpen());
-
     if (ImGui::BeginTabBar("TabBar")) {
         if (ImGui::BeginTabItem("Histogram")) {
-            if (has_image) {
+            if (image != nullptr) {
                 // Disable mouse interactions
                 ImGui::BeginDisabled();
                 histogram.Render(image->GetHistogram());
@@ -122,7 +133,7 @@ void ImageEditor::RenderImageAnalysisTabs() {
         }
 
         if (ImGui::BeginTabItem("Image")) {
-            if (has_image) {
+            if (image != nullptr) {
                 image_info.Render(image->GetImageInfo());
             }
 
@@ -130,7 +141,7 @@ void ImageEditor::RenderImageAnalysisTabs() {
         }
 
         if (ImGui::BeginTabItem("EXIF")) {
-            if (has_image) {
+            if (image != nullptr) {
                 exif_metadata.Render(metadata_reader.GetExifMetadata());
             }
 
@@ -138,7 +149,7 @@ void ImageEditor::RenderImageAnalysisTabs() {
         }
 
         if (ImGui::BeginTabItem("File")) {
-            if (has_image) {
+            if (image != nullptr) {
                 file_info.Render(metadata_reader.GetFileInfo());
             }
 

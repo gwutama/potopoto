@@ -11,14 +11,11 @@ public:
     void Reset();
 
     ActiveTool GetActiveTool() const { return active_tool; }
-
-    sigslot::signal<>& ZoomToolClicked() { return zoom_tool_clicked; }
-    sigslot::signal<>& HandToolClicked() { return hand_tool_clicked; }
+    sigslot::signal<ActiveTool>& ActiveToolChanged() { return active_tool_changed; }
 
 private:
     ActiveTool active_tool;
-    sigslot::signal<> zoom_tool_clicked;
-    sigslot::signal<> hand_tool_clicked;
+    sigslot::signal<ActiveTool> active_tool_changed;
 };
 
 

@@ -5,39 +5,8 @@
 #include "ImageUtils.h"
 
 
-Image::Image() {
-    Close(); // = reset
-}
-
-Image::~Image() {}
-
-
-bool Image::Open(const std::string& in_filename) {
-    Close();
-
-    cv::UMat image;
-    cv::imread(in_filename, cv::IMREAD_UNCHANGED).copyTo(image);
-
-    if (image.empty()) {
-        std::cerr << "Error: Could not load image file: " << in_filename << std::endl;
-        Close();
-        return false;
-    }
-
-    original_image = std::make_shared<cv::UMat>(image.clone());
-    image.release();
-
-    // Convert to RGBA format if necessary
-    if (original_image->channels() == 1) {
-        cv::cvtColor(*original_image, *original_image, cv::COLOR_GRAY2RGBA);
-    } else if (original_image->channels() == 3) {
-        cv::cvtColor(*original_image, *original_image, cv::COLOR_BGR2RGBA);
-    } else if (original_image->channels() != 4) {
-        std::cerr << "Error: Unsupported image format with " << original_image->channels() << " channels." << std::endl;
-        Close();
-        return false;
-    }
-
+Image::Image(const std::shared_ptr<cv::UMat>& in_image) {
+    original_image = in_image;
     adjusted_image = std::make_shared<cv::UMat>(original_image->clone());
 
     original_image_small = std::make_shared<cv::UMat>();
@@ -53,41 +22,16 @@ bool Image::Open(const std::string& in_filename) {
 
     UpdateHistogram();
     UpdateImageInfo();
-
-    return true;
 }
 
 
-bool Image::IsOpen() const {
-    return original_image != nullptr && !original_image->empty();
-}
-
-
-void Image::Close() {
-    if (original_image != nullptr) {
-        original_image->release();
-    }
-
-    if (adjusted_image != nullptr) {
-        adjusted_image->release();
-    }
-}
-
-
-bool Image::Save(const std::string& out_filename) const {
-    if (adjusted_image == nullptr || adjusted_image->empty()) {
-        return false;
-    }
-
-    return cv::imwrite(out_filename, *adjusted_image);
+Image::~Image() {
+    original_image->release();
+    adjusted_image->release();
 }
 
 
 void Image::LoadToTexture(GLuint& texture) {
-    if (adjusted_image == nullptr || adjusted_image->empty()) {
-        return;
-    }
-
     if (texture) {
         glDeleteTextures(1, &texture);
     }
@@ -135,10 +79,6 @@ void Image::AdjustValue(float value) {
 
 
 bool Image::ApplyAdjustments() {
-    if (adjusted_image == nullptr || adjusted_image->empty()) {
-        return false;
-    }
-
     if (!brightness_contrast_adjustments_layer.ParametersHaveChanged() &&
         !hsv_adjustments_layer.ParametersHaveChanged()) {
         return false;
@@ -175,10 +115,6 @@ bool Image::ApplyAdjustments() {
 
 
 void Image::UpdateHistogram() {
-    if (adjusted_image_histogram == nullptr || adjusted_image_histogram->empty()) {
-        return;
-    }
-
     bgr_histogram.clear();
 
     // Separate the image into B, G, R, A planes
@@ -221,10 +157,6 @@ void Image::UpdateHistogram() {
 
 
 void Image::UpdateImageInfo() {
-    if (adjusted_image == nullptr || adjusted_image->empty()) {
-        return;
-    }
-
     image_info.clear();
 
     image_info.insert(std::make_pair("Width", std::to_string(adjusted_image->cols) + " px"));

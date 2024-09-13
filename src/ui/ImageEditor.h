@@ -21,6 +21,7 @@
 class ImageEditor {
 public:
     ImageEditor();
+    ~ImageEditor();
     void Render();
 
 private:

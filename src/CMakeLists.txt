@@ -50,6 +50,7 @@ set(SRC_FILES
         ui/Toolbar.cpp
         Image.cpp
         ImageAdjustmentsParameters.h
+        ImageReader.cpp
         ImageUtils.cpp
         LayerBase.h
         LayerBrightnessContrast.cpp

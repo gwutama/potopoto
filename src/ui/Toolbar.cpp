@@ -11,12 +11,12 @@ void Toolbar::Render() {
 
     if (ImGui::Selectable("Zoom", active_tool == ActiveTool::Zoom)) {
         active_tool = ActiveTool::Zoom;
-        zoom_tool_clicked();
+        active_tool_changed(active_tool);
     }
 
     if (ImGui::Selectable("Hand", active_tool == ActiveTool::Hand)) {
         active_tool = ActiveTool::Hand;
-        hand_tool_clicked();
+        active_tool_changed(active_tool);
     }
 
     ImGui::EndChild();
