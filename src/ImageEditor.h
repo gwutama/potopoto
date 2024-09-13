@@ -14,7 +14,7 @@ public:
 
 private:
     void RenderMenubar();
-    void HandleLoadImage(const std::string& filename);
+    void HandleOpenImage(const std::string& filename);
     void HandleSaveImage();
     void HandleCloseImage();
 

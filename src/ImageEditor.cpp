@@ -64,7 +64,7 @@ void ImageEditor::RenderMenubar() {
             const char *filename = tinyfd_openFileDialog("Open Image", "", 0,
                                                          NULL, NULL, 0);
             if (filename) {
-                HandleLoadImage(filename);
+                HandleOpenImage(filename);
             }
         }
 
@@ -87,7 +87,9 @@ void ImageEditor::RenderMenubar() {
 }
 
 
-void ImageEditor::HandleLoadImage(const std::string &filename) {
+void ImageEditor::HandleOpenImage(const std::string &filename) {
+    HandleCloseImage();
+
     if (!image.Open(filename)) {
         std::cerr << "Error: Could not load image file: " << filename << std::endl;
         return;
@@ -108,7 +110,7 @@ void ImageEditor::HandleCloseImage() {
     glDeleteTextures(1, &image_texture);
     image_texture = 0;
     active_tool = ActiveTool::Hand;
-    zoom = 1.0f;
+    zoom = std::numeric_limits<float>::max();
     brightness = LayerBrightnessContrast::DEFAULT_BRIGHTNESS;
     contrast = LayerBrightnessContrast::DEFAULT_CONTRAST;
     hue = LayerHueSaturationValue::DEFAULT_HUE;
@@ -140,8 +142,18 @@ void ImageEditor::RenderImageViewer() {
     ImGuiIO &io = ImGui::GetIO();
 
     // Image Viewer Scrollable Region
-    ImVec2 image_size = ImVec2(static_cast<float>(image.GetWidth()) * zoom, static_cast<float>(image.GetHeight()) * zoom);
+    ImVec2 image_size = ImVec2(static_cast<float>(image.GetWidth()), static_cast<float>(image.GetHeight()));
     ImVec2 window_size = ImGui::GetContentRegionAvail();
+
+    // Set initial zoom level to fit the image in the view area if zoom is at default
+    if (zoom == std::numeric_limits<float>::max()) {
+        float zoom_x = (window_size.x - 50) / image_size.x;
+        float zoom_y = (window_size.y - 50) / image_size.y;
+        zoom = std::min(zoom_x, zoom_y);  // Set zoom to the minimum zoom level that fits the image
+    }
+
+    // Adjust image size according to the zoom level
+    ImVec2 scaled_image_size = ImVec2(image_size.x * zoom, image_size.y * zoom);
 
     ImGui::BeginChild("ImageViewer", window_size, ImGuiChildFlags_Borders,
                       ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar);
@@ -200,14 +212,14 @@ void ImageEditor::RenderImageViewer() {
     }
 
     // Calculate offsets to center the image
-    float offset_x = std::max(0.0f, (window_size.x - image_size.x) * 0.5f);
-    float offset_y = std::max(0.0f, (window_size.y - image_size.y) * 0.5f);
+    float offset_x = std::max(0.0f, (window_size.x - scaled_image_size.x) * 0.5f);
+    float offset_y = std::max(0.0f, (window_size.y - scaled_image_size.y) * 0.5f);
 
     // Set the cursor position to center the image
     ImGui::SetCursorPos(ImVec2(offset_x, offset_y));
 
     // Render the image
-    ImGui::Image((void *)(intptr_t)image_texture, image_size);
+    ImGui::Image((void *)(intptr_t)image_texture, scaled_image_size);
 
     ImGui::EndChild();
 
