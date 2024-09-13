@@ -44,9 +44,9 @@ bool Image::Open(const std::string& in_filename) {
 
     // If width is larger than height, then resize by width. Otherwise, resize by height.
     if (original_image->cols > original_image->rows) {
-        ImageUtils::ResizeImageByHeight(*original_image, *original_image_small, 128);
+        ImageUtils::ResizeImageByHeight(*original_image, *original_image_small, 100);
     } else {
-        ImageUtils::ResizeImageByWidth(*original_image, *original_image_small, 128);
+        ImageUtils::ResizeImageByWidth(*original_image, *original_image_small, 100);
     }
 
     adjusted_image_histogram = std::make_shared<cv::UMat>(original_image_small->clone());
@@ -200,14 +200,17 @@ void Image::UpdateHistogram() {
 #pragma omp section
         {
             cv::calcHist(&bgr_planes[0], 1, 0, cv::UMat(), b_hist, 1, &histSize, &histRange, uniform, accumulate);
+            cv::normalize(b_hist, b_hist, 0, 1, cv::NORM_MINMAX);
         }
 #pragma omp section
         {
             cv::calcHist(&bgr_planes[1], 1, 0, cv::UMat(), g_hist, 1, &histSize, &histRange, uniform, accumulate);
+            cv::normalize(g_hist, g_hist, 0, 1, cv::NORM_MINMAX);
         }
 #pragma omp section
         {
             cv::calcHist(&bgr_planes[2], 1, 0, cv::UMat(), r_hist, 1, &histSize, &histRange, uniform, accumulate);
+            cv::normalize(r_hist, r_hist, 0, 1, cv::NORM_MINMAX);
         }
     }
 
