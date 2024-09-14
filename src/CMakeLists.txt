@@ -54,6 +54,7 @@ set(SRC_FILES
         ImageUtils.cpp
         LayerBase.h
         LayerBrightnessContrast.cpp
+        LayerCmyk.cpp
         LayerHueSaturationValue.cpp
         main.cpp
         MetadataReader.cpp

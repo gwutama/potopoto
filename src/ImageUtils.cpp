@@ -28,6 +28,110 @@ cv::UMat ImageUtils::HsvToRgba(const cv::UMat& hsv_image) {
 }
 
 
+cv::UMat ImageUtils::RgbaToCmyk(const cv::UMat& rgba_image) {
+    // Convert RGBA to RGB color space
+    cv::UMat rgb_image;
+    cv::cvtColor(rgba_image, rgb_image, cv::COLOR_RGBA2RGB);
+
+    // Prepare the CMYK output image
+    cv::UMat cmyk_image(rgb_image.size(), CV_32FC4); // CMYK has 4 channels (C, M, Y, K) in floating point
+
+    // Create intermediate matrices to store the converted channels
+    std::vector<cv::UMat> rgb_channels(3), cmyk_channels(4);
+    cv::split(rgb_image, rgb_channels);
+
+    // Normalize RGB channels to [0, 1]
+    rgb_channels[0].convertTo(rgb_channels[0], CV_32F, 1.0 / 255.0);
+    rgb_channels[1].convertTo(rgb_channels[1], CV_32F, 1.0 / 255.0);
+    rgb_channels[2].convertTo(rgb_channels[2], CV_32F, 1.0 / 255.0);
+
+    // Calculate C, M, Y channels
+    cv::UMat ones = cv::UMat::ones(rgb_channels[0].size(), CV_32F); // Create a matrix filled with 1.0
+
+    cv::subtract(ones, rgb_channels[0], cmyk_channels[0]); // C = 1 - R
+    cv::subtract(ones, rgb_channels[1], cmyk_channels[1]); // M = 1 - G
+    cv::subtract(ones, rgb_channels[2], cmyk_channels[2]); // Y = 1 - B
+
+    // Calculate K channel
+    cv::min(cmyk_channels[0], cmyk_channels[1], cmyk_channels[3]);
+    cv::min(cmyk_channels[3], cmyk_channels[2], cmyk_channels[3]); // K = min(C, M, Y)
+
+    // Compute adjusted C, M, Y
+    cv::subtract(cmyk_channels[0], cmyk_channels[3], cmyk_channels[0]); // C = C - K
+    cv::subtract(cmyk_channels[1], cmyk_channels[3], cmyk_channels[1]); // M = M - K
+    cv::subtract(cmyk_channels[2], cmyk_channels[3], cmyk_channels[2]); // Y = Y - K
+
+    // Handle edge cases where K is 1 to avoid division by zero
+    cv::UMat mask;
+    cv::compare(cmyk_channels[3], ones, mask, cv::CMP_EQ); // Create mask where K == 1
+
+    cv::UMat inverse_k;
+    cv::subtract(ones, cmyk_channels[3], inverse_k); // inverse_k = 1 - K
+
+    // Divide C, M, Y by (1 - K), only where K < 1
+    cv::divide(cmyk_channels[0], inverse_k, cmyk_channels[0], 1, -1);
+    cv::divide(cmyk_channels[1], inverse_k, cmyk_channels[1], 1, -1);
+    cv::divide(cmyk_channels[2], inverse_k, cmyk_channels[2], 1, -1);
+
+    // Set C, M, Y to zero where K is 1
+    cmyk_channels[0].setTo(0, mask);
+    cmyk_channels[1].setTo(0, mask);
+    cmyk_channels[2].setTo(0, mask);
+
+    // Merge CMYK channels
+    cv::merge(cmyk_channels, cmyk_image);
+
+    return cmyk_image;
+}
+
+
+cv::UMat ImageUtils::CmykToRgba(const cv::UMat& cmyk_image) {
+    // Check if the input CMYK image has the correct number of channels
+    if (cmyk_image.channels() != 4) {
+        std::cerr << "Error: Input image must have 4 channels (C, M, Y, K) in floating point format." << std::endl;
+    }
+
+    // Split the CMYK image into individual channels
+    std::vector<cv::UMat> cmyk_channels;
+    cv::split(cmyk_image, cmyk_channels);
+
+    // Prepare UMat containers for RGB channels
+    cv::UMat r, g, b;
+
+    // Create a matrix of ones for scalar operations
+    cv::UMat ones = cv::UMat::ones(cmyk_channels[0].size(), CV_32F);
+
+    // Convert CMYK to RGB
+    cv::subtract(ones, cmyk_channels[0], r); // R = 1 - C
+    cv::subtract(ones, cmyk_channels[1], g); // G = 1 - M
+    cv::subtract(ones, cmyk_channels[2], b); // B = 1 - Y
+
+    // Apply the black channel (K)
+    cv::UMat inverse_k;
+    cv::subtract(ones, cmyk_channels[3], inverse_k); // inverse_k = 1 - K
+
+    cv::multiply(r, inverse_k, r); // R *= (1 - K)
+    cv::multiply(g, inverse_k, g); // G *= (1 - K)
+    cv::multiply(b, inverse_k, b); // B *= (1 - K)
+
+    // Convert the values back to 8-bit color depth (0-255)
+    r.convertTo(r, CV_8U, 255.0);
+    g.convertTo(g, CV_8U, 255.0);
+    b.convertTo(b, CV_8U, 255.0);
+
+    // Create an alpha channel (fully opaque)
+    cv::UMat a = cv::UMat::ones(r.size(), CV_8U);
+    cv::multiply(a, 255, a); // Ensure alpha channel is fully opaque (255)
+
+    // Merge RGB and Alpha channels into an RGBA image
+    std::vector<cv::UMat> rgba_channels = {r, g, b, a};
+    cv::UMat rgba_image;
+    cv::merge(rgba_channels, rgba_image);
+
+    return rgba_image;
+}
+
+
 cv::UMat ImageUtils::CombineHsvImages(const std::vector<cv::UMat>& hsv_images) {
     if (hsv_images.empty()) {
         std::cerr << "Error: No images provided." << std::endl;

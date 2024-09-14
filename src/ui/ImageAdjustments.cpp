@@ -9,9 +9,15 @@ void ImageAdjustments::Render() {
     // Local variables to hold the current values
     float brightness = adjustments_parameters.GetBrightness();
     float contrast = adjustments_parameters.GetContrast();
+
     float hue = adjustments_parameters.GetHue();
     float saturation = adjustments_parameters.GetSaturation();
     float value = adjustments_parameters.GetValue();
+
+    float cyan = adjustments_parameters.GetCyan();
+    float magenta = adjustments_parameters.GetMagenta();
+    float yellow = adjustments_parameters.GetYellow();
+    float black = adjustments_parameters.GetBlack();
 
     bool changed = false;
 
@@ -37,16 +43,44 @@ void ImageAdjustments::Render() {
         }
     }
 
-    if (ImGui::SliderFloat("Saturation", &saturation, -255.0f, 255.0f, "%.0f")) {
+    if (ImGui::SliderFloat("Saturation", &saturation, -128.0f, 128.0f, "%.0f")) {
         if (saturation != adjustments_parameters.GetSaturation()) {
             adjustments_parameters.SetSaturation(saturation);
             changed = true;
         }
     }
 
-    if (ImGui::SliderFloat("Value", &value, 0.0f, 255.0f, "%.0f")) {
+    if (ImGui::SliderFloat("Value", &value, -128.0f, 128.0f, "%.0f")) {
         if (value != adjustments_parameters.GetValue()) {
             adjustments_parameters.SetValue(value);
+            changed = true;
+        }
+    }
+
+    if (ImGui::SliderFloat("Cyan", &cyan, -2.0f, 2.0f, "%.2f")) {
+        if (cyan != adjustments_parameters.GetCyan()) {
+            adjustments_parameters.SetCyan(cyan);
+            changed = true;
+        }
+    }
+
+    if (ImGui::SliderFloat("Magenta", &magenta, -2.0f, 2.0f, "%.2f")) {
+        if (magenta != adjustments_parameters.GetMagenta()) {
+            adjustments_parameters.SetMagenta(magenta);
+            changed = true;
+        }
+    }
+
+    if (ImGui::SliderFloat("Yellow", &yellow, -2.0f, 2.0f, "%.2f")) {
+        if (yellow != adjustments_parameters.GetYellow()) {
+            adjustments_parameters.SetYellow(yellow);
+            changed = true;
+        }
+    }
+
+    if (ImGui::SliderFloat("Black", &black, -2.0f, 2.0f, "%.2f")) {
+        if (black != adjustments_parameters.GetBlack()) {
+            adjustments_parameters.SetBlack(black);
             changed = true;
         }
     }

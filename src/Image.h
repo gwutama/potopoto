@@ -13,6 +13,7 @@
 
 #include "LayerBrightnessContrast.h"
 #include "LayerHueSaturationValue.h"
+#include "LayerCmyk.h"
 
 class Image {
 public:
@@ -30,9 +31,16 @@ public:
 
     void AdjustBrightness(float value);
     void AdjustContrast(float value);
+
     void AdjustHue(float value);
     void AdjustSaturation(float value);
     void AdjustValue(float value);
+
+    void AdjustCyan(float value);
+    void AdjustMagenta(float value);
+    void AdjustYellow(float value);
+    void AdjustBlack(float value);
+
     bool ApplyAdjustments();
 
 private:
@@ -49,9 +57,11 @@ private:
 
     LayerBrightnessContrast brightness_contrast_adjustments_layer;
     LayerHueSaturationValue hsv_adjustments_layer;
+    LayerCmyk cmyk_adjustments_layer;
 
     LayerBrightnessContrast brightness_contrast_adjustments_layer_hist;
     LayerHueSaturationValue hsv_adjustments_layer_hist;
+    LayerCmyk cmyk_adjustments_layer_hist;
 };
 
 #endif //POTOPOTO_IMAGE_H

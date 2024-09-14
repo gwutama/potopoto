@@ -78,9 +78,34 @@ void Image::AdjustValue(float value) {
 }
 
 
+void Image::AdjustCyan(float value) {
+    cmyk_adjustments_layer.SetCyan(value);
+    cmyk_adjustments_layer_hist.SetCyan(value);
+}
+
+
+void Image::AdjustMagenta(float value) {
+    cmyk_adjustments_layer.SetMagenta(value);
+    cmyk_adjustments_layer_hist.SetMagenta(value);
+}
+
+
+void Image::AdjustYellow(float value) {
+    cmyk_adjustments_layer.SetYellow(value);
+    cmyk_adjustments_layer_hist.SetYellow(value);
+}
+
+
+void Image::AdjustBlack(float value) {
+    cmyk_adjustments_layer.SetBlack(value);
+    cmyk_adjustments_layer_hist.SetBlack(value);
+}
+
+
 bool Image::ApplyAdjustments() {
     if (!brightness_contrast_adjustments_layer.ParametersHaveChanged() &&
-        !hsv_adjustments_layer.ParametersHaveChanged()) {
+        !hsv_adjustments_layer.ParametersHaveChanged() &&
+        !cmyk_adjustments_layer.ParametersHaveChanged()) {
         return false;
     }
 
@@ -94,8 +119,12 @@ bool Image::ApplyAdjustments() {
             adjusted_image = std::make_shared<cv::UMat>(original_image->clone());
             brightness_contrast_adjustments_layer.SetImage(adjusted_image);
             image_changed = brightness_contrast_adjustments_layer.Apply() || image_changed;
+
             hsv_adjustments_layer.SetImage(adjusted_image);
             image_changed = hsv_adjustments_layer.Apply() || image_changed;
+
+            cmyk_adjustments_layer.SetImage(adjusted_image);
+            image_changed = cmyk_adjustments_layer.Apply() || image_changed;
         }
 #pragma omp section
         {
@@ -103,8 +132,12 @@ bool Image::ApplyAdjustments() {
             adjusted_image_histogram = std::make_shared<cv::UMat>(original_image_small->clone());
             brightness_contrast_adjustments_layer_hist.SetImage(adjusted_image_histogram);
             brightness_contrast_adjustments_layer_hist.Apply();
+
             hsv_adjustments_layer_hist.SetImage(adjusted_image_histogram);
             hsv_adjustments_layer_hist.Apply();
+
+            cmyk_adjustments_layer_hist.SetImage(adjusted_image_histogram);
+            cmyk_adjustments_layer_hist.Apply();
 
             UpdateHistogram();
         }

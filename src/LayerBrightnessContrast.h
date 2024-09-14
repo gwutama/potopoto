@@ -6,7 +6,7 @@
 class LayerBrightnessContrast : public LayerBase {
 public:
     LayerBrightnessContrast();
-    ~LayerBrightnessContrast() {}
+    ~LayerBrightnessContrast() = default;
 
     void SetBrightness(float in_brightness);
     void SetContrast(float in_contrast);

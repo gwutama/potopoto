@@ -112,6 +112,10 @@ void ImageEditor::OnImageAdjustmentsParametersChanged(const ImageAdjustmentsPara
     image->AdjustHue(parameters.GetHue());
     image->AdjustSaturation(parameters.GetSaturation());
     image->AdjustValue(parameters.GetValue());
+    image->AdjustCyan(parameters.GetCyan());
+    image->AdjustMagenta(parameters.GetMagenta());
+    image->AdjustYellow(parameters.GetYellow());
+    image->AdjustBlack(parameters.GetBlack());
     image->ApplyAdjustments();
     canvas.UpdateTexture(); // Update the texture with the adjusted image
 }

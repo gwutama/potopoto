@@ -6,7 +6,9 @@
 
 class ImageAdjustments {
 public:
-    ImageAdjustments() {}
+    ImageAdjustments() = default;
+    ~ImageAdjustments() = default;
+
     void Render();
     void Reset();
 

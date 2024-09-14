@@ -6,7 +6,7 @@
 class LayerHueSaturationValue : public LayerBase {
 public:
     LayerHueSaturationValue();
-    ~LayerHueSaturationValue() {}
+    ~LayerHueSaturationValue() = default;
 
     void SetHue(float in_hue);
     void SetSaturation(float in_saturation);
