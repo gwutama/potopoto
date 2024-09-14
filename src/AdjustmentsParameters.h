@@ -1,15 +1,15 @@
-#ifndef POTOPOTO_IMAGEADJUSTMENTSPARAMETERS_H
-#define POTOPOTO_IMAGEADJUSTMENTSPARAMETERS_H
+#ifndef POTOPOTO_ADJUSTMENTSPARAMETERS_H
+#define POTOPOTO_ADJUSTMENTSPARAMETERS_H
 
 #include "LayerBrightnessContrast.h"
 #include "LayerHueSaturationValue.h"
 #include "LayerCmyk.h"
 
 
-class ImageAdjustmentsParameters {
+class AdjustmentsParameters {
 public:
-    ImageAdjustmentsParameters() { Reset(); }
-    ~ImageAdjustmentsParameters() = default;
+    AdjustmentsParameters() { Reset(); }
+    ~AdjustmentsParameters() = default;
 
     void Reset() {
         brightness = LayerBrightnessContrast::DEFAULT_BRIGHTNESS;
@@ -25,7 +25,7 @@ public:
         black = LayerCmyk::DEFAULT_BLACK;
     }
 
-    bool operator==(const ImageAdjustmentsParameters& other) const {
+    bool operator==(const AdjustmentsParameters& other) const {
         return brightness == other.brightness &&
                contrast == other.contrast &&
                hue == other.hue &&
@@ -78,4 +78,4 @@ private:
     float black;
 };
 
-#endif //POTOPOTO_IMAGEADJUSTMENTSPARAMETERS_H
+#endif //POTOPOTO_ADJUSTMENTSPARAMETERS_H

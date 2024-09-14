@@ -11,9 +11,11 @@
 #include <GL/gl.h>
 #endif
 
+#include "AdjustmentsParameters.h"
 #include "LayerBrightnessContrast.h"
 #include "LayerHueSaturationValue.h"
 #include "LayerCmyk.h"
+
 
 class Image {
 public:
@@ -27,8 +29,6 @@ public:
 
     std::unordered_map<std::string, std::string> GetImageInfo() const { return image_info; }
 
-    std::vector<cv::Mat> GetHistogram() const { return bgr_histogram; }
-
     void AdjustBrightness(float value);
     void AdjustContrast(float value);
 
@@ -41,27 +41,21 @@ public:
     void AdjustYellow(float value);
     void AdjustBlack(float value);
 
-    bool ApplyAdjustments();
+    void AdjustParameters(const AdjustmentsParameters& parameters);
 
-private:
+    virtual bool ApplyAdjustments();
+
+protected:
     void UpdateImageInfo();
-    void UpdateHistogram();
 
-private:
+protected:
     std::shared_ptr<cv::UMat> original_image;
     std::shared_ptr<cv::UMat> adjusted_image;
-    std::shared_ptr<cv::UMat> original_image_small;
-    std::shared_ptr<cv::UMat> adjusted_image_histogram;
-    std::vector<cv::Mat> bgr_histogram;
     std::unordered_map<std::string, std::string> image_info;
 
     LayerBrightnessContrast brightness_contrast_adjustments_layer;
     LayerHueSaturationValue hsv_adjustments_layer;
     LayerCmyk cmyk_adjustments_layer;
-
-    LayerBrightnessContrast brightness_contrast_adjustments_layer_hist;
-    LayerHueSaturationValue hsv_adjustments_layer_hist;
-    LayerCmyk cmyk_adjustments_layer_hist;
 };
 
 #endif //POTOPOTO_IMAGE_H

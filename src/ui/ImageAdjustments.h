@@ -2,7 +2,7 @@
 #define POTOPOTO_IMAGEADJUSTMENTS_H
 
 #include <sigslot/signal.hpp>
-#include "../ImageAdjustmentsParameters.h"
+#include "../AdjustmentsParameters.h"
 
 class ImageAdjustments {
 public:
@@ -12,12 +12,12 @@ public:
     void Render();
     void Reset();
 
-    sigslot::signal<const ImageAdjustmentsParameters&>& ParametersChanged() { return parameters_changed; }
+    sigslot::signal<const AdjustmentsParameters&>& ParametersChanged() { return parameters_changed; }
 
 private:
-    sigslot::signal<const ImageAdjustmentsParameters&> parameters_changed;
+    sigslot::signal<const AdjustmentsParameters&> parameters_changed;
 
-    ImageAdjustmentsParameters adjustments_parameters;
+    AdjustmentsParameters adjustments_parameters;
 };
 
 

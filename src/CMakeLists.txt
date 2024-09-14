@@ -48,8 +48,9 @@ set(SRC_FILES
         ui/ImageInfo.cpp
         ui/Menubar.cpp
         ui/Toolbar.cpp
+        AdjustmentsParameters.h
         Image.cpp
-        ImageAdjustmentsParameters.h
+        ImageHistogram.cpp
         ImageReader.cpp
         ImageUtils.cpp
         LayerBase.h

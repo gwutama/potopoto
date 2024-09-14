@@ -1,26 +1,12 @@
 #include "Image.h"
 #include <opencv2/imgcodecs.hpp>
-#include <opencv2/imgproc.hpp>
 #include <sstream>
-#include "ImageUtils.h"
 
 
 Image::Image(const std::shared_ptr<cv::UMat>& in_image) {
     original_image = in_image;
     adjusted_image = std::make_shared<cv::UMat>(original_image->clone());
 
-    original_image_small = std::make_shared<cv::UMat>();
-
-    // If width is larger than height, then resize by width. Otherwise, resize by height.
-    if (original_image->cols > original_image->rows) {
-        ImageUtils::ResizeImageByHeight(*original_image, *original_image_small, 100);
-    } else {
-        ImageUtils::ResizeImageByWidth(*original_image, *original_image_small, 100);
-    }
-
-    adjusted_image_histogram = std::make_shared<cv::UMat>(original_image_small->clone());
-
-    UpdateHistogram();
     UpdateImageInfo();
 }
 
@@ -50,55 +36,59 @@ void Image::LoadToTexture(GLuint& texture) {
 
 void Image::AdjustBrightness(float value) {
     brightness_contrast_adjustments_layer.SetBrightness(value);
-    brightness_contrast_adjustments_layer_hist.SetBrightness(value);
 }
 
 
 void Image::AdjustContrast(float value) {
     brightness_contrast_adjustments_layer.SetContrast(value);
-    brightness_contrast_adjustments_layer_hist.SetContrast(value);
 }
 
 
 void Image::AdjustHue(float value) {
     hsv_adjustments_layer.SetHue(value);
-    hsv_adjustments_layer_hist.SetHue(value);
 }
 
 
 void Image::AdjustSaturation(float value) {
     hsv_adjustments_layer.SetSaturation(value);
-    hsv_adjustments_layer_hist.SetSaturation(value);
 }
 
 
 void Image::AdjustValue(float value) {
     hsv_adjustments_layer.SetValue(value);
-    hsv_adjustments_layer_hist.SetValue(value);
 }
 
 
 void Image::AdjustCyan(float value) {
     cmyk_adjustments_layer.SetCyan(value);
-    cmyk_adjustments_layer_hist.SetCyan(value);
 }
 
 
 void Image::AdjustMagenta(float value) {
     cmyk_adjustments_layer.SetMagenta(value);
-    cmyk_adjustments_layer_hist.SetMagenta(value);
 }
 
 
 void Image::AdjustYellow(float value) {
     cmyk_adjustments_layer.SetYellow(value);
-    cmyk_adjustments_layer_hist.SetYellow(value);
 }
 
 
 void Image::AdjustBlack(float value) {
     cmyk_adjustments_layer.SetBlack(value);
-    cmyk_adjustments_layer_hist.SetBlack(value);
+}
+
+
+void Image::AdjustParameters(const AdjustmentsParameters &parameters) {
+    AdjustBrightness(parameters.GetBrightness());
+    AdjustContrast(parameters.GetContrast());
+    AdjustHue(parameters.GetHue());
+    AdjustSaturation(parameters.GetSaturation());
+    AdjustValue(parameters.GetValue());
+    AdjustCyan(parameters.GetCyan());
+    AdjustMagenta(parameters.GetMagenta());
+    AdjustYellow(parameters.GetYellow());
+    AdjustBlack(parameters.GetBlack());
 }
 
 
@@ -111,71 +101,17 @@ bool Image::ApplyAdjustments() {
 
     bool image_changed = false;
 
-#pragma omp parallel sections
-    {
-#pragma omp section
-        {
-            // Real image
-            adjusted_image = std::make_shared<cv::UMat>(original_image->clone());
-            brightness_contrast_adjustments_layer.SetImage(adjusted_image);
-            image_changed = brightness_contrast_adjustments_layer.Apply() || image_changed;
+    adjusted_image = std::make_shared<cv::UMat>(original_image->clone());
+    brightness_contrast_adjustments_layer.SetImage(adjusted_image);
+    image_changed = brightness_contrast_adjustments_layer.Apply() || image_changed;
 
-            hsv_adjustments_layer.SetImage(adjusted_image);
-            image_changed = hsv_adjustments_layer.Apply() || image_changed;
+    hsv_adjustments_layer.SetImage(adjusted_image);
+    image_changed = hsv_adjustments_layer.Apply() || image_changed;
 
-            cmyk_adjustments_layer.SetImage(adjusted_image);
-            image_changed = cmyk_adjustments_layer.Apply() || image_changed;
-        }
-#pragma omp section
-        {
-            // Histogram image
-            adjusted_image_histogram = std::make_shared<cv::UMat>(original_image_small->clone());
-            brightness_contrast_adjustments_layer_hist.SetImage(adjusted_image_histogram);
-            brightness_contrast_adjustments_layer_hist.Apply();
-
-            hsv_adjustments_layer_hist.SetImage(adjusted_image_histogram);
-            hsv_adjustments_layer_hist.Apply();
-
-            cmyk_adjustments_layer_hist.SetImage(adjusted_image_histogram);
-            cmyk_adjustments_layer_hist.Apply();
-
-            UpdateHistogram();
-        }
-    }
+    cmyk_adjustments_layer.SetImage(adjusted_image);
+    image_changed = cmyk_adjustments_layer.Apply() || image_changed;
 
     return image_changed;
-}
-
-
-void Image::UpdateHistogram() {
-    bgr_histogram.clear();
-
-    // Separate the image into B, G, R, A planes
-    std::vector<cv::Mat> bgr_planes;
-    cv::split(*adjusted_image_histogram, bgr_planes);
-
-    // Set the number of bins and range
-    int histSize = 256;
-    float range[] = {0, 256};
-    const float* histRange = {range};
-    bool uniform = true;
-    bool accumulate = false;
-
-    cv::Mat b_hist, g_hist, r_hist;
-
-    // Compute the histograms
-    cv::calcHist(&bgr_planes[0], 1, 0, cv::UMat(), b_hist, 1, &histSize, &histRange, uniform, accumulate);
-    cv::normalize(b_hist, b_hist, 0, 1, cv::NORM_MINMAX);
-
-    cv::calcHist(&bgr_planes[1], 1, 0, cv::UMat(), g_hist, 1, &histSize, &histRange, uniform, accumulate);
-    cv::normalize(g_hist, g_hist, 0, 1, cv::NORM_MINMAX);
-
-    cv::calcHist(&bgr_planes[2], 1, 0, cv::UMat(), r_hist, 1, &histSize, &histRange, uniform, accumulate);
-    cv::normalize(r_hist, r_hist, 0, 1, cv::NORM_MINMAX);
-
-    bgr_histogram.push_back(b_hist);
-    bgr_histogram.push_back(g_hist);
-    bgr_histogram.push_back(r_hist);
 }
 
 

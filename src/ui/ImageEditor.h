@@ -6,8 +6,9 @@
 #include <imgui.h>
 
 #include "../Image.h"
+#include "../ImageHistogram.h"
 #include "../MetadataReader.h"
-#include "../ImageAdjustmentsParameters.h"
+#include "../AdjustmentsParameters.h"
 
 #include "Menubar.h"
 #include "Toolbar.h"
@@ -29,7 +30,7 @@ private:
     void HandleSaveImage();
     void HandleCloseImage();
 
-    void OnImageAdjustmentsParametersChanged(const ImageAdjustmentsParameters& parameters);
+    void OnImageAdjustmentsParametersChanged(const AdjustmentsParameters& parameters);
 
     void RenderImageAnalysisTabs();
 
@@ -44,6 +45,7 @@ private:
     Canvas canvas;
 
     std::shared_ptr<Image> image;
+    std::shared_ptr<ImageHistogram> image_histogram;
     MetadataReader metadata_reader;
 };
 

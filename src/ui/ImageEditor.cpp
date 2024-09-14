@@ -86,6 +86,8 @@ void ImageEditor::HandleOpenImage(const std::string &filename) {
 
     metadata_reader.Load(filename);
     canvas.UpdateTexture();
+
+    image_histogram = std::make_shared<ImageHistogram>(my_image);
 }
 
 
@@ -106,18 +108,21 @@ void ImageEditor::HandleCloseImage() {
 }
 
 
-void ImageEditor::OnImageAdjustmentsParametersChanged(const ImageAdjustmentsParameters &parameters) {
-    image->AdjustBrightness(parameters.GetBrightness());
-    image->AdjustContrast(parameters.GetContrast());
-    image->AdjustHue(parameters.GetHue());
-    image->AdjustSaturation(parameters.GetSaturation());
-    image->AdjustValue(parameters.GetValue());
-    image->AdjustCyan(parameters.GetCyan());
-    image->AdjustMagenta(parameters.GetMagenta());
-    image->AdjustYellow(parameters.GetYellow());
-    image->AdjustBlack(parameters.GetBlack());
-    image->ApplyAdjustments();
-    canvas.UpdateTexture(); // Update the texture with the adjusted image
+void ImageEditor::OnImageAdjustmentsParametersChanged(const AdjustmentsParameters &parameters) {
+#pragma omp parallel sections
+    {
+#pragma omp section
+        {
+            image->AdjustParameters(parameters);
+            image->ApplyAdjustments();
+            canvas.UpdateTexture(); // Update the texture with the adjusted image
+        }
+#pragma omp section
+        {
+            image_histogram->AdjustParameters(parameters);
+            image_histogram->ApplyAdjustments();
+        }
+    }
 }
 
 
@@ -129,7 +134,7 @@ void ImageEditor::RenderImageAnalysisTabs() {
             if (image != nullptr) {
                 // Disable mouse interactions
                 ImGui::BeginDisabled();
-                histogram.Render(image->GetHistogram());
+                histogram.Render(image_histogram->GetHistogram());
                 ImGui::EndDisabled();
             }
 
