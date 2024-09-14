@@ -12,16 +12,16 @@ void Menubar::Render() {
                                                          nullptr, nullptr, 0);
             if (filename) {
                 std::string filename_str(filename);
-                open_signal(filename_str);
+                open_clicked(filename_str);
             }
         }
 
         if (ImGui::MenuItem("Save")) {
-            save_signal();
+            save_clicked();
         }
 
         if (ImGui::MenuItem("Close")) {
-            close_signal();
+            close_clicked();
         }
 
         if (ImGui::MenuItem("Exit")) {

@@ -9,14 +9,14 @@ public:
     Menubar() {}
     void Render();
 
-    sigslot::signal<const std::string&>& OpenSignal() { return open_signal; }
-    sigslot::signal<>& SaveSignal() { return save_signal; }
-    sigslot::signal<>& CloseSignal() { return close_signal; }
+    sigslot::signal<const std::string&>& OpenClicked() { return open_clicked; }
+    sigslot::signal<>& SaveClicked() { return save_clicked; }
+    sigslot::signal<>& CloseClicked() { return close_clicked; }
 
 private:
-    sigslot::signal<const std::string&> open_signal;
-    sigslot::signal<> save_signal;
-    sigslot::signal<> close_signal;
+    sigslot::signal<const std::string&> open_clicked;
+    sigslot::signal<> save_clicked;
+    sigslot::signal<> close_clicked;
 };
 
 

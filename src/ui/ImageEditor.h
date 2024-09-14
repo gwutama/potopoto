@@ -26,9 +26,9 @@ public:
     void Render();
 
 private:
-    void HandleOpenImage(const std::string& filename);
-    void HandleSaveImage();
-    void HandleCloseImage();
+    void OnOpenClicked(const std::string& filename);
+    void OnSaveClicked();
+    void OnCloseClicked();
 
     void OnImageAdjustmentsParametersChanged(const AdjustmentsParameters& parameters);
 

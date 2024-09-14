@@ -6,14 +6,14 @@
 
 
 ImageEditor::ImageEditor() {
-    HandleCloseImage(); // = reset
+    OnCloseClicked(); // = reset
 
     canvas.SetActiveTool(ActiveTool::Zoom);
 
     // connect signals to slots
-    menubar.OpenSignal().connect(&ImageEditor::HandleOpenImage, this);
-    menubar.SaveSignal().connect(&ImageEditor::HandleSaveImage, this);
-    menubar.CloseSignal().connect(&ImageEditor::HandleCloseImage, this);
+    menubar.OpenClicked().connect(&ImageEditor::OnOpenClicked, this);
+    menubar.SaveClicked().connect(&ImageEditor::OnSaveClicked, this);
+    menubar.CloseClicked().connect(&ImageEditor::OnCloseClicked, this);
 
     toolbar.ActiveToolChanged().connect(&Canvas::SetActiveTool, &canvas);
 
@@ -22,7 +22,7 @@ ImageEditor::ImageEditor() {
 
 
 ImageEditor::~ImageEditor() {
-    HandleCloseImage();
+    OnCloseClicked();
 }
 
 
@@ -71,8 +71,8 @@ void ImageEditor::Render() {
 }
 
 
-void ImageEditor::HandleOpenImage(const std::string &filename) {
-    HandleCloseImage();
+void ImageEditor::OnOpenClicked(const std::string &filename) {
+    OnCloseClicked();
 
     std::shared_ptr<cv::UMat> my_image = std::make_shared<cv::UMat>();
 
@@ -91,12 +91,12 @@ void ImageEditor::HandleOpenImage(const std::string &filename) {
 }
 
 
-void ImageEditor::HandleSaveImage() {
+void ImageEditor::OnSaveClicked() {
     // Implement save functionality
 }
 
 
-void ImageEditor::HandleCloseImage() {
+void ImageEditor::OnCloseClicked() {
     if (image != nullptr) {
         image.reset();
         image = nullptr;
