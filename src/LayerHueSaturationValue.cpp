@@ -65,37 +65,27 @@ bool LayerHueSaturationValue::Process() {
         hsv_channels[2].convertTo(hsv_channels[2], CV_32F); // Value
     }
 
-#pragma omp parallel sections
-    {
-#pragma omp section
-        {
-            if (hue != DEFAULT_HUE) {
-                cv::add(hsv_channels[0], hue, hsv_channels[0]); // Adjust hue
+    if (hue != DEFAULT_HUE) {
+        cv::add(hsv_channels[0], hue, hsv_channels[0]); // Adjust hue
 
-                // Wrap hue values to be in the range [0, 180]
-                cv::min(hsv_channels[0], 180, hsv_channels[0]); // Clamp hue
-            }
-        }
-#pragma omp section
-        {
-            if (saturation != DEFAULT_SATURATION) {
-                cv::add(hsv_channels[1], saturation, hsv_channels[1]); // Adjust saturation
+        // Wrap hue values to be in the range [0, 180]
+        cv::min(hsv_channels[0], 180, hsv_channels[0]); // Clamp hue
+    }
 
-                // Clamp value channel to the range [0, 255]
-                // Not necessary because it's converted back to 8-bit later
-                //cv::min(hsv_channels[1], 255, hsv_channels[1]); // Clamp saturation
-            }
-        }
-#pragma omp section
-        {
-            if (value != DEFAULT_VALUE) {
-                cv::add(hsv_channels[2], value, hsv_channels[2]); // Adjust value
+    if (saturation != DEFAULT_SATURATION) {
+        cv::add(hsv_channels[1], saturation, hsv_channels[1]); // Adjust saturation
 
-                // Clamp value channel to the range [0, 255]
-                // Not necessary because it's converted back to 8-bit later
-                //cv::min(hsv_channels[2], 255, hsv_channels[2]); // Clamp value
-            }
-        }
+        // Clamp value channel to the range [0, 255]
+        // Not necessary because it's converted back to 8-bit later
+        //cv::min(hsv_channels[1], 255, hsv_channels[1]); // Clamp saturation
+    }
+
+    if (value != DEFAULT_VALUE) {
+        cv::add(hsv_channels[2], value, hsv_channels[2]); // Adjust value
+
+        // Clamp value channel to the range [0, 255]
+        // Not necessary because it's converted back to 8-bit later
+        //cv::min(hsv_channels[2], 255, hsv_channels[2]); // Clamp value
     }
 
     // This is used for exporting, no need to parallelize this because the impact is minimal

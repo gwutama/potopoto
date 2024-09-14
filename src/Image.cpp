@@ -164,24 +164,14 @@ void Image::UpdateHistogram() {
     cv::Mat b_hist, g_hist, r_hist;
 
     // Compute the histograms
-#pragma omp parallel sections
-    {
-#pragma omp section
-        {
-            cv::calcHist(&bgr_planes[0], 1, 0, cv::UMat(), b_hist, 1, &histSize, &histRange, uniform, accumulate);
-            cv::normalize(b_hist, b_hist, 0, 1, cv::NORM_MINMAX);
-        }
-#pragma omp section
-        {
-            cv::calcHist(&bgr_planes[1], 1, 0, cv::UMat(), g_hist, 1, &histSize, &histRange, uniform, accumulate);
-            cv::normalize(g_hist, g_hist, 0, 1, cv::NORM_MINMAX);
-        }
-#pragma omp section
-        {
-            cv::calcHist(&bgr_planes[2], 1, 0, cv::UMat(), r_hist, 1, &histSize, &histRange, uniform, accumulate);
-            cv::normalize(r_hist, r_hist, 0, 1, cv::NORM_MINMAX);
-        }
-    }
+    cv::calcHist(&bgr_planes[0], 1, 0, cv::UMat(), b_hist, 1, &histSize, &histRange, uniform, accumulate);
+    cv::normalize(b_hist, b_hist, 0, 1, cv::NORM_MINMAX);
+
+    cv::calcHist(&bgr_planes[1], 1, 0, cv::UMat(), g_hist, 1, &histSize, &histRange, uniform, accumulate);
+    cv::normalize(g_hist, g_hist, 0, 1, cv::NORM_MINMAX);
+
+    cv::calcHist(&bgr_planes[2], 1, 0, cv::UMat(), r_hist, 1, &histSize, &histRange, uniform, accumulate);
+    cv::normalize(r_hist, r_hist, 0, 1, cv::NORM_MINMAX);
 
     bgr_histogram.push_back(b_hist);
     bgr_histogram.push_back(g_hist);
