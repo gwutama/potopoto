@@ -113,8 +113,9 @@ void ImageEditor::OnImageAdjustmentsParametersChanged(const AdjustmentsParameter
     {
 #pragma omp section
         {
+            auto region = canvas.GetViewableRegion();
             image->AdjustParameters(parameters);
-            image->ApplyAdjustments();
+            image->ApplyAdjustmentsRegion(region.first, region.second);
             canvas.UpdateTexture(); // Update the texture with the adjusted image
         }
 #pragma omp section

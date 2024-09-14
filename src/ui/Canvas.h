@@ -9,17 +9,23 @@
 class Canvas {
 public:
     Canvas();
+    ~Canvas() = default;
+
     void SetImage(std::shared_ptr<Image> my_image) { image = my_image; }
     void Reset();
     void Render();
     void SetActiveTool(ActiveTool tool) { active_tool = tool; }
     void UpdateTexture();
 
+    std::pair<ImVec2, ImVec2> GetViewableRegion() const;
+
 private:
     void HandleZoomTool(ImGuiIO& io);
     void HandleHandTool();
 
 private:
+    ImVec2 window_size;
+    ImVec2 scroll_offset;
     std::shared_ptr<Image> image;
     float zoom;
     GLuint image_texture;

@@ -14,6 +14,7 @@ public:
     static cv::UMat CombineRgbaImages(const std::vector<cv::UMat>& rgba_images);
     static void ResizeImageByWidth(const cv::UMat& inputImage, cv::UMat& outputImage, int newWidth);
     static void ResizeImageByHeight(const cv::UMat& inputImage, cv::UMat& outputImage, int newHeight);
+    static cv::UMat CropImage(const cv::UMat& rgba_image, const cv::Rect& roi);
 };
 
 

@@ -1,6 +1,7 @@
 #ifndef POTOPOTO_LAYERHUESATURATIONVALUE_H
 #define POTOPOTO_LAYERHUESATURATIONVALUE_H
 
+#include <imgui.h>
 #include "LayerBase.h"
 
 class LayerHueSaturationValue : public LayerBase {
@@ -21,7 +22,7 @@ public:
 
 protected:
     std::string GetName() override { return "HueSaturationValue"; }
-    bool Process() override;
+    bool Process(const ImVec2& top_left, const ImVec2& bottom_right) override;
 
 private:
     float hue;

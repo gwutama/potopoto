@@ -25,7 +25,7 @@ void Canvas::Render() {
 
     // Image Viewer Scrollable Region
     ImVec2 image_size = ImVec2(static_cast<float>(image->GetWidth()), static_cast<float>(image->GetHeight()));
-    ImVec2 window_size = ImGui::GetContentRegionAvail();
+    window_size = ImGui::GetContentRegionAvail();
 
     // Set initial zoom level to fit the image in the view area if zoom is at default
     if (zoom == std::numeric_limits<float>::max()) {
@@ -39,6 +39,9 @@ void Canvas::Render() {
 
     ImGui::BeginChild("Canvas", window_size, ImGuiChildFlags_Borders,
                       ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar);
+
+    scroll_offset.x = ImGui::GetScrollX();
+    scroll_offset.y = ImGui::GetScrollY();
 
     // Handle zooming if the Zoom tool is active and the window is hovered
     if (active_tool == ActiveTool::Zoom && ImGui::IsWindowHovered()) {
@@ -86,12 +89,11 @@ void Canvas::HandleZoomTool(ImGuiIO& io) {
     io.WantCaptureMouse = true;
 
     // Calculate new scroll offsets to keep mouse-centered point at the same location
-    ImVec2 new_scroll_offset;
-    new_scroll_offset.x = (mouse_pos_relative_to_image.x * zoom) - (mouse_pos.x - window_pos.x);
-    new_scroll_offset.y = (mouse_pos_relative_to_image.y * zoom) - (mouse_pos.y - window_pos.y);
+    scroll_offset.x = (mouse_pos_relative_to_image.x * zoom) - (mouse_pos.x - window_pos.x);
+    scroll_offset.y = (mouse_pos_relative_to_image.y * zoom) - (mouse_pos.y - window_pos.y);
 
-    ImGui::SetScrollX(new_scroll_offset.x);
-    ImGui::SetScrollY(new_scroll_offset.y);
+    ImGui::SetScrollX(scroll_offset.x);
+    ImGui::SetScrollY(scroll_offset.y);
 }
 
 
@@ -112,3 +114,50 @@ void Canvas::UpdateTexture() {
 
     image->LoadToTexture(image_texture);
 }
+
+
+std::pair<ImVec2, ImVec2> Canvas::GetViewableRegion() const {
+    if (image == nullptr) {
+        return { ImVec2(0, 0), ImVec2(0, 0) };
+    }
+
+    // Get the original size of the image
+    ImVec2 image_size(static_cast<float>(image->GetWidth()), static_cast<float>(image->GetHeight()));
+
+    // Calculate the scaled image size according to the current zoom level
+    ImVec2 scaled_image_size = ImVec2(image_size.x * zoom, image_size.y * zoom);
+
+    // Calculate offsets to center the image in the canvas
+    float offset_x = std::max(0.0f, (window_size.x - scaled_image_size.x) * 0.5f);
+    float offset_y = std::max(0.0f, (window_size.y - scaled_image_size.y) * 0.5f);
+
+    // Calculate the visible region in the original image's coordinate space
+    ImVec2 top_left_image = ImVec2(
+            ((scroll_offset.x + offset_x) / zoom) - 50,
+            ((scroll_offset.y + offset_y) / zoom) - 50
+    );
+
+    ImVec2 bottom_right_image = ImVec2(
+            ((scroll_offset.x + offset_x + window_size.x) / zoom) + 50,
+            ((scroll_offset.y + offset_y + window_size.y) / zoom) + 50
+    );
+
+    // Adjust by clamping the coordinates within the bounds of the original image size
+    top_left_image.x = std::clamp(top_left_image.x, 0.0f, image_size.x);
+    top_left_image.y = std::clamp(top_left_image.y, 0.0f, image_size.y);
+    bottom_right_image.x = std::clamp(bottom_right_image.x, 0.0f, image_size.x);
+    bottom_right_image.y = std::clamp(bottom_right_image.y, 0.0f, image_size.y);
+
+    // If the image is smaller than the window, adjust for centering
+    if (scaled_image_size.x < window_size.x) {
+        top_left_image.x = 0.0f;
+        bottom_right_image.x = image_size.x;
+    }
+    if (scaled_image_size.y < window_size.y) {
+        top_left_image.y = 0.0f;
+        bottom_right_image.y = image_size.y;
+    }
+
+    return { top_left_image, bottom_right_image };
+}
+

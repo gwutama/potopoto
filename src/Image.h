@@ -11,6 +11,8 @@
 #include <GL/gl.h>
 #endif
 
+#include <imgui.h>
+
 #include "AdjustmentsParameters.h"
 #include "LayerBrightnessContrast.h"
 #include "LayerHueSaturationValue.h"
@@ -44,6 +46,7 @@ public:
     void AdjustParameters(const AdjustmentsParameters& parameters);
 
     virtual bool ApplyAdjustments();
+    virtual bool ApplyAdjustmentsRegion(const ImVec2& top_left, const ImVec2& bottom_right);
 
 protected:
     void UpdateImageInfo();

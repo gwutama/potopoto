@@ -41,42 +41,57 @@ cv::UMat ImageUtils::RgbaToCmyk(const cv::UMat& rgba_image) {
     cv::split(rgb_image, rgb_channels);
 
     // Normalize RGB channels to [0, 1]
-    rgb_channels[0].convertTo(rgb_channels[0], CV_32F, 1.0 / 255.0);
-    rgb_channels[1].convertTo(rgb_channels[1], CV_32F, 1.0 / 255.0);
-    rgb_channels[2].convertTo(rgb_channels[2], CV_32F, 1.0 / 255.0);
+    cv::UMat ones = cv::UMat::ones(rgb_channels[0].size(), CV_32F); // Matrix filled with 1.0
 
-    // Calculate C, M, Y channels
-    cv::UMat ones = cv::UMat::ones(rgb_channels[0].size(), CV_32F); // Create a matrix filled with 1.0
-
-    cv::subtract(ones, rgb_channels[0], cmyk_channels[0]); // C = 1 - R
-    cv::subtract(ones, rgb_channels[1], cmyk_channels[1]); // M = 1 - G
-    cv::subtract(ones, rgb_channels[2], cmyk_channels[2]); // Y = 1 - B
+#pragma omp parallel sections
+    {
+#pragma omp section
+        {
+            rgb_channels[0].convertTo(rgb_channels[0], CV_32F, 1.0 / 255.0);
+            cv::subtract(ones, rgb_channels[0], cmyk_channels[0]); // C = 1 - R
+        }
+#pragma omp section
+        {
+            rgb_channels[1].convertTo(rgb_channels[1], CV_32F, 1.0 / 255.0);
+            cv::subtract(ones, rgb_channels[1], cmyk_channels[1]); // M = 1 - G
+        }
+#pragma omp section
+        {
+            rgb_channels[2].convertTo(rgb_channels[2], CV_32F, 1.0 / 255.0);
+            cv::subtract(ones, rgb_channels[2], cmyk_channels[2]); // Y = 1 - B
+        }
+    }
 
     // Calculate K channel
     cv::min(cmyk_channels[0], cmyk_channels[1], cmyk_channels[3]);
     cv::min(cmyk_channels[3], cmyk_channels[2], cmyk_channels[3]); // K = min(C, M, Y)
 
-    // Compute adjusted C, M, Y
-    cv::subtract(cmyk_channels[0], cmyk_channels[3], cmyk_channels[0]); // C = C - K
-    cv::subtract(cmyk_channels[1], cmyk_channels[3], cmyk_channels[1]); // M = M - K
-    cv::subtract(cmyk_channels[2], cmyk_channels[3], cmyk_channels[2]); // Y = Y - K
-
-    // Handle edge cases where K is 1 to avoid division by zero
-    cv::UMat mask;
+    // Compute adjusted C, M, Y and handle edge cases where K = 1
+    cv::UMat inverse_k, mask;
+    cv::subtract(ones, cmyk_channels[3], inverse_k); // inverse_k = 1 - K
     cv::compare(cmyk_channels[3], ones, mask, cv::CMP_EQ); // Create mask where K == 1
 
-    cv::UMat inverse_k;
-    cv::subtract(ones, cmyk_channels[3], inverse_k); // inverse_k = 1 - K
-
-    // Divide C, M, Y by (1 - K), only where K < 1
-    cv::divide(cmyk_channels[0], inverse_k, cmyk_channels[0], 1, -1);
-    cv::divide(cmyk_channels[1], inverse_k, cmyk_channels[1], 1, -1);
-    cv::divide(cmyk_channels[2], inverse_k, cmyk_channels[2], 1, -1);
-
-    // Set C, M, Y to zero where K is 1
-    cmyk_channels[0].setTo(0, mask);
-    cmyk_channels[1].setTo(0, mask);
-    cmyk_channels[2].setTo(0, mask);
+#pragma omp parallel sections
+    {
+#pragma omp section
+        {
+            cv::subtract(cmyk_channels[0], cmyk_channels[3], cmyk_channels[0]); // C = C - K
+            cv::divide(cmyk_channels[0], inverse_k, cmyk_channels[0], 1, -1); // C /= (1 - K)
+            cmyk_channels[0].setTo(0, mask); // Set C to zero where K is 1
+        }
+#pragma omp section
+        {
+            cv::subtract(cmyk_channels[1], cmyk_channels[3], cmyk_channels[1]); // M = M - K
+            cv::divide(cmyk_channels[1], inverse_k, cmyk_channels[1], 1, -1); // M /= (1 - K)
+            cmyk_channels[1].setTo(0, mask); // Set M to zero where K is 1
+        }
+#pragma omp section
+        {
+            cv::subtract(cmyk_channels[2], cmyk_channels[3], cmyk_channels[2]); // Y = Y - K
+            cv::divide(cmyk_channels[2], inverse_k, cmyk_channels[2], 1, -1); // Y /= (1 - K)
+            cmyk_channels[2].setTo(0, mask); // Set Y to zero where K is 1
+        }
+    }
 
     // Merge CMYK channels
     cv::merge(cmyk_channels, cmyk_image);
@@ -89,6 +104,7 @@ cv::UMat ImageUtils::CmykToRgba(const cv::UMat& cmyk_image) {
     // Check if the input CMYK image has the correct number of channels
     if (cmyk_image.channels() != 4) {
         std::cerr << "Error: Input image must have 4 channels (C, M, Y, K) in floating point format." << std::endl;
+        return cv::UMat(); // Return an empty UMat in case of error
     }
 
     // Split the CMYK image into individual channels
@@ -101,23 +117,44 @@ cv::UMat ImageUtils::CmykToRgba(const cv::UMat& cmyk_image) {
     // Create a matrix of ones for scalar operations
     cv::UMat ones = cv::UMat::ones(cmyk_channels[0].size(), CV_32F);
 
-    // Convert CMYK to RGB
-    cv::subtract(ones, cmyk_channels[0], r); // R = 1 - C
-    cv::subtract(ones, cmyk_channels[1], g); // G = 1 - M
-    cv::subtract(ones, cmyk_channels[2], b); // B = 1 - Y
+    // Convert CMYK to RGB in parallel
+#pragma omp parallel sections
+    {
+#pragma omp section
+        cv::subtract(ones, cmyk_channels[0], r); // R = 1 - C
+
+#pragma omp section
+        cv::subtract(ones, cmyk_channels[1], g); // G = 1 - M
+
+#pragma omp section
+        cv::subtract(ones, cmyk_channels[2], b); // B = 1 - Y
+    }
 
     // Apply the black channel (K)
     cv::UMat inverse_k;
     cv::subtract(ones, cmyk_channels[3], inverse_k); // inverse_k = 1 - K
 
-    cv::multiply(r, inverse_k, r); // R *= (1 - K)
-    cv::multiply(g, inverse_k, g); // G *= (1 - K)
-    cv::multiply(b, inverse_k, b); // B *= (1 - K)
+    // Multiply and convert values back to 8-bit color depth in parallel
+#pragma omp parallel sections
+    {
+#pragma omp section
+        {
+            cv::multiply(r, inverse_k, r); // R *= (1 - K)
+            r.convertTo(r, CV_8U, 255.0); // Convert to 8-bit
+        }
 
-    // Convert the values back to 8-bit color depth (0-255)
-    r.convertTo(r, CV_8U, 255.0);
-    g.convertTo(g, CV_8U, 255.0);
-    b.convertTo(b, CV_8U, 255.0);
+#pragma omp section
+        {
+            cv::multiply(g, inverse_k, g); // G *= (1 - K)
+            g.convertTo(g, CV_8U, 255.0); // Convert to 8-bit
+        }
+
+#pragma omp section
+        {
+            cv::multiply(b, inverse_k, b); // B *= (1 - K)
+            b.convertTo(b, CV_8U, 255.0); // Convert to 8-bit
+        }
+    }
 
     // Create an alpha channel (fully opaque)
     cv::UMat a = cv::UMat::ones(r.size(), CV_8U);
@@ -280,4 +317,13 @@ void ImageUtils::ResizeImageByHeight(const cv::UMat& inputImage, cv::UMat& outpu
 
     // Resize the image
     cv::resize(inputImage, outputImage, cv::Size(newWidth, newHeight));
+}
+
+
+cv::UMat ImageUtils::CropImage(const cv::UMat& rgba_image, const cv::Rect& roi) {
+    // Ensure the ROI is within the bounds of the original image
+    cv::Rect safe_roi = roi & cv::Rect(0, 0, rgba_image.cols, rgba_image.rows);
+
+    // Crop the image to the safe ROI
+    return rgba_image(safe_roi).clone();
 }

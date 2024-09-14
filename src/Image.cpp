@@ -115,6 +115,29 @@ bool Image::ApplyAdjustments() {
 }
 
 
+bool Image::ApplyAdjustmentsRegion(const ImVec2 &top_left, const ImVec2 &bottom_right) {
+    if (!brightness_contrast_adjustments_layer.ParametersHaveChanged() &&
+        !hsv_adjustments_layer.ParametersHaveChanged() &&
+        !cmyk_adjustments_layer.ParametersHaveChanged()) {
+        return false;
+    }
+
+    bool image_changed = false;
+
+    adjusted_image = std::make_shared<cv::UMat>(original_image->clone());
+    brightness_contrast_adjustments_layer.SetImage(adjusted_image);
+    image_changed = brightness_contrast_adjustments_layer.ApplyRegion(top_left, bottom_right) || image_changed;
+
+    hsv_adjustments_layer.SetImage(adjusted_image);
+    image_changed = hsv_adjustments_layer.ApplyRegion(top_left, bottom_right) || image_changed;
+
+    cmyk_adjustments_layer.SetImage(adjusted_image);
+    image_changed = cmyk_adjustments_layer.ApplyRegion(top_left, bottom_right) || image_changed;
+
+    return image_changed;
+}
+
+
 void Image::UpdateImageInfo() {
     image_info.clear();
 

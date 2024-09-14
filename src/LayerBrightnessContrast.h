@@ -1,6 +1,7 @@
 #ifndef POTOPOTO_LAYERBRIGHTNESSCONTRAST_H
 #define POTOPOTO_LAYERBRIGHTNESSCONTRAST_H
 
+#include <imgui.h>
 #include "LayerBase.h"
 
 class LayerBrightnessContrast : public LayerBase {
@@ -18,7 +19,7 @@ public:
 
 protected:
     std::string GetName() override { return "BrightnessContrast"; }
-    bool Process() override;
+    bool Process(const ImVec2& top_left, const ImVec2& bottom_right) override;
 
 private:
     float brightness;
