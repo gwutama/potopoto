@@ -57,28 +57,28 @@ void ImageAdjustments::Render() {
         }
     }
 
-    if (ImGui::SliderFloat("Cyan", &cyan, -2.0f, 2.0f, "%.2f")) {
+    if (ImGui::SliderFloat("Cyan", &cyan, -1.0f, 1.0f, "%.2f")) {
         if (cyan != adjustments_parameters.GetCyan()) {
             adjustments_parameters.SetCyan(cyan);
             changed = true;
         }
     }
 
-    if (ImGui::SliderFloat("Magenta", &magenta, -2.0f, 2.0f, "%.2f")) {
+    if (ImGui::SliderFloat("Magenta", &magenta, -1.0f, 1.0f, "%.2f")) {
         if (magenta != adjustments_parameters.GetMagenta()) {
             adjustments_parameters.SetMagenta(magenta);
             changed = true;
         }
     }
 
-    if (ImGui::SliderFloat("Yellow", &yellow, -2.0f, 2.0f, "%.2f")) {
+    if (ImGui::SliderFloat("Yellow", &yellow, -1.0f, 1.0f, "%.2f")) {
         if (yellow != adjustments_parameters.GetYellow()) {
             adjustments_parameters.SetYellow(yellow);
             changed = true;
         }
     }
 
-    if (ImGui::SliderFloat("Black", &black, -2.0f, 2.0f, "%.2f")) {
+    if (ImGui::SliderFloat("Black", &black, -1.0f, 1.0f, "%.2f")) {
         if (black != adjustments_parameters.GetBlack()) {
             adjustments_parameters.SetBlack(black);
             changed = true;

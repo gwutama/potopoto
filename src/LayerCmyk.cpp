@@ -71,10 +71,21 @@ bool LayerCmyk::Process() {
     cv::split(cmyk_image, cmyk_channels);
 
     // Apply adjustments using optimized OpenCV operations
-    cv::add(cmyk_channels[0], cyan, cmyk_channels[0]);
-    cv::add(cmyk_channels[1], magenta, cmyk_channels[1]);
-    cv::add(cmyk_channels[2], yellow, cmyk_channels[2]);
-    cv::add(cmyk_channels[3], black, cmyk_channels[3]);
+    if (cyan != DEFAULT_CYAN) {
+        cv::add(cmyk_channels[0], cyan, cmyk_channels[0]);
+    }
+
+    if (magenta != DEFAULT_MAGENTA) {
+        cv::add(cmyk_channels[1], magenta, cmyk_channels[1]);
+    }
+
+    if (yellow != DEFAULT_YELLOW) {
+        cv::add(cmyk_channels[2], yellow, cmyk_channels[2]);
+    }
+
+    if (black != DEFAULT_BLACK) {
+        cv::add(cmyk_channels[3], black, cmyk_channels[3]);
+    }
 
     // Merge the adjusted CMYK channels back into a single image
     cv::merge(cmyk_channels, cmyk_image);
