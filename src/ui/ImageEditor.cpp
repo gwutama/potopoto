@@ -18,6 +18,7 @@ ImageEditor::ImageEditor() {
     toolbar.ActiveToolChanged().connect(&Canvas::SetActiveTool, &canvas);
 
     image_adjustments.ParametersChanged().connect(&ImageEditor::OnImageAdjustmentsParametersChanged, this);
+    image_adjustments.MouseReleased().connect(&ImageEditor::OnImageAdjustmentsMouseReleased, this);
 }
 
 
@@ -38,7 +39,7 @@ void ImageEditor::Render() {
 
     ImGui::Begin("MainLayout", nullptr, ImGuiWindowFlags_NoDecoration);
 
-    if (image == nullptr) {
+    if (image_preview == nullptr) {
         ImGui::BeginDisabled();
     }
 
@@ -63,7 +64,7 @@ void ImageEditor::Render() {
     image_adjustments.Render();
     ImGui::EndChild();
 
-    if (image == nullptr) {
+    if (image_preview == nullptr) {
         ImGui::EndDisabled();
     }
 
@@ -81,8 +82,8 @@ void ImageEditor::OnOpenClicked(const std::string &filename) {
         return;
     }
 
-    image = std::make_shared<Image>(my_image);
-    canvas.SetImage(image);
+    image_preview = std::make_shared<ImagePreview>(my_image);
+    canvas.SetImage(image_preview);
 
     metadata_reader.Load(filename);
     canvas.UpdateTexture();
@@ -97,9 +98,9 @@ void ImageEditor::OnSaveClicked() {
 
 
 void ImageEditor::OnCloseClicked() {
-    if (image != nullptr) {
-        image.reset();
-        image = nullptr;
+    if (image_preview != nullptr) {
+        image_preview.reset();
+        image_preview = nullptr;
     }
 
     toolbar.Reset();
@@ -114,8 +115,8 @@ void ImageEditor::OnImageAdjustmentsParametersChanged(const AdjustmentsParameter
 #pragma omp section
         {
             auto region = canvas.GetViewableRegion();
-            image->AdjustParameters(parameters);
-            image->ApplyAdjustmentsRegion(region.first, region.second);
+            image_preview->AdjustParameters(parameters);
+            image_preview->ApplyAdjustmentsRegion(region.first, region.second);
             canvas.UpdateTexture(); // Update the texture with the adjusted image
         }
 #pragma omp section
@@ -132,7 +133,7 @@ void ImageEditor::RenderImageAnalysisTabs() {
 
     if (ImGui::BeginTabBar("TabBar")) {
         if (ImGui::BeginTabItem("Histogram")) {
-            if (image != nullptr) {
+            if (image_preview != nullptr) {
                 // Disable mouse interactions
                 ImGui::BeginDisabled();
                 histogram.Render(image_histogram->GetHistogram());
@@ -143,15 +144,15 @@ void ImageEditor::RenderImageAnalysisTabs() {
         }
 
         if (ImGui::BeginTabItem("Image")) {
-            if (image != nullptr) {
-                image_info.Render(image->GetImageInfo());
+            if (image_preview != nullptr) {
+                image_info.Render(image_preview->GetImageInfo());
             }
 
             ImGui::EndTabItem();
         }
 
         if (ImGui::BeginTabItem("EXIF")) {
-            if (image != nullptr) {
+            if (image_preview != nullptr) {
                 exif_metadata.Render(metadata_reader.GetExifMetadata());
             }
 
@@ -159,7 +160,7 @@ void ImageEditor::RenderImageAnalysisTabs() {
         }
 
         if (ImGui::BeginTabItem("File")) {
-            if (image != nullptr) {
+            if (image_preview != nullptr) {
                 file_info.Render(metadata_reader.GetFileInfo());
             }
 
@@ -170,4 +171,9 @@ void ImageEditor::RenderImageAnalysisTabs() {
     }
 
     ImGui::EndChild();
+}
+
+
+void ImageEditor::OnImageAdjustmentsMouseReleased() {
+    std::cout << "OnImageAdjustmentsMouseReleased(): Mouse released" << std::endl;
 }

@@ -13,9 +13,11 @@ public:
     void Reset();
 
     sigslot::signal<const AdjustmentsParameters&>& ParametersChanged() { return parameters_changed; }
+    sigslot::signal<>& MouseReleased() { return mouse_released; }
 
 private:
     sigslot::signal<const AdjustmentsParameters&> parameters_changed;
+    sigslot::signal<> mouse_released;
 
     AdjustmentsParameters adjustments_parameters;
 };

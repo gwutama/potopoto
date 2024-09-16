@@ -29,11 +29,19 @@ void ImageAdjustments::Render() {
         }
     }
 
+    if (ImGui::IsItemDeactivatedAfterEdit()) {
+        mouse_released();
+    }
+
     if (ImGui::SliderFloat("Contrast", &contrast, 0.0f, 2.0f, "%.2f")) {
         if (contrast != adjustments_parameters.GetContrast()) {
             adjustments_parameters.SetContrast(contrast);
             changed = true;
         }
+    }
+
+    if (ImGui::IsItemDeactivatedAfterEdit()) {
+        mouse_released();
     }
 
     if (ImGui::SliderFloat("Hue", &hue, 0.0f, 180.0f, "%.0f")) {
@@ -43,11 +51,19 @@ void ImageAdjustments::Render() {
         }
     }
 
+    if (ImGui::IsItemDeactivatedAfterEdit()) {
+        mouse_released();
+    }
+
     if (ImGui::SliderFloat("Saturation", &saturation, -128.0f, 128.0f, "%.0f")) {
         if (saturation != adjustments_parameters.GetSaturation()) {
             adjustments_parameters.SetSaturation(saturation);
             changed = true;
         }
+    }
+
+    if (ImGui::IsItemDeactivatedAfterEdit()) {
+        mouse_released();
     }
 
     if (ImGui::SliderFloat("Value", &value, -128.0f, 128.0f, "%.0f")) {
@@ -57,11 +73,19 @@ void ImageAdjustments::Render() {
         }
     }
 
+    if (ImGui::IsItemDeactivatedAfterEdit()) {
+        mouse_released();
+    }
+
     if (ImGui::SliderFloat("Cyan", &cyan, -1.0f, 1.0f, "%.2f")) {
         if (cyan != adjustments_parameters.GetCyan()) {
             adjustments_parameters.SetCyan(cyan);
             changed = true;
         }
+    }
+
+    if (ImGui::IsItemDeactivatedAfterEdit()) {
+        mouse_released();
     }
 
     if (ImGui::SliderFloat("Magenta", &magenta, -1.0f, 1.0f, "%.2f")) {
@@ -71,6 +95,10 @@ void ImageAdjustments::Render() {
         }
     }
 
+    if (ImGui::IsItemDeactivatedAfterEdit()) {
+        mouse_released();
+    }
+
     if (ImGui::SliderFloat("Yellow", &yellow, -1.0f, 1.0f, "%.2f")) {
         if (yellow != adjustments_parameters.GetYellow()) {
             adjustments_parameters.SetYellow(yellow);
@@ -78,11 +106,19 @@ void ImageAdjustments::Render() {
         }
     }
 
+    if (ImGui::IsItemDeactivatedAfterEdit()) {
+        mouse_released();
+    }
+
     if (ImGui::SliderFloat("Black", &black, -1.0f, 1.0f, "%.2f")) {
         if (black != adjustments_parameters.GetBlack()) {
             adjustments_parameters.SetBlack(black);
             changed = true;
         }
+    }
+
+    if (ImGui::IsItemDeactivatedAfterEdit()) {
+        mouse_released();
     }
 
     // Emit the signal if any parameter has changed

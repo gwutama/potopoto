@@ -49,7 +49,10 @@ set(SRC_FILES
         ui/Menubar.cpp
         ui/Toolbar.cpp
         AdjustmentsParameters.h
+        BackgroundTask.h
         Image.cpp
+        ImagePreview.cpp
+        ImageApplyAdjustmentsTask.cpp
         ImageHistogram.cpp
         ImageReader.cpp
         ImageUtils.cpp

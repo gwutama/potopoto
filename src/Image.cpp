@@ -17,108 +17,42 @@ Image::~Image() {
 }
 
 
-void Image::LoadToTexture(GLuint& texture) {
-    if (texture) {
-        glDeleteTextures(1, &texture);
+void Image::AdjustParameters(const AdjustmentsParameters &parameters_in) {
+    if (parameters_in == parameters) {
+        parameters_changed = false;
+        return;
     }
 
-    // Download the data from UMat to Mat
-    cv::Mat imageMat = adjusted_image->getMat(cv::ACCESS_READ);
+    brightness_contrast_adjustments_layer.SetBrightness(parameters_in.GetBrightness());
+    brightness_contrast_adjustments_layer.SetContrast(parameters_in.GetContrast());
 
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageMat.cols, imageMat.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageMat.data);
-    glBindTexture(GL_TEXTURE_2D, 0);
-}
+    hsv_adjustments_layer.SetHue(parameters_in.GetHue());
+    hsv_adjustments_layer.SetSaturation(parameters_in.GetSaturation());
+    hsv_adjustments_layer.SetValue(parameters_in.GetValue());
 
+    cmyk_adjustments_layer.SetCyan(parameters_in.GetCyan());
+    cmyk_adjustments_layer.SetMagenta(parameters_in.GetMagenta());
+    cmyk_adjustments_layer.SetYellow(parameters_in.GetYellow());
+    cmyk_adjustments_layer.SetBlack(parameters_in.GetBlack());
 
-void Image::AdjustBrightness(float value) {
-    brightness_contrast_adjustments_layer.SetBrightness(value);
-}
-
-
-void Image::AdjustContrast(float value) {
-    brightness_contrast_adjustments_layer.SetContrast(value);
-}
-
-
-void Image::AdjustHue(float value) {
-    hsv_adjustments_layer.SetHue(value);
-}
-
-
-void Image::AdjustSaturation(float value) {
-    hsv_adjustments_layer.SetSaturation(value);
-}
-
-
-void Image::AdjustValue(float value) {
-    hsv_adjustments_layer.SetValue(value);
-}
-
-
-void Image::AdjustCyan(float value) {
-    cmyk_adjustments_layer.SetCyan(value);
-}
-
-
-void Image::AdjustMagenta(float value) {
-    cmyk_adjustments_layer.SetMagenta(value);
-}
-
-
-void Image::AdjustYellow(float value) {
-    cmyk_adjustments_layer.SetYellow(value);
-}
-
-
-void Image::AdjustBlack(float value) {
-    cmyk_adjustments_layer.SetBlack(value);
-}
-
-
-void Image::AdjustParameters(const AdjustmentsParameters &parameters) {
-    AdjustBrightness(parameters.GetBrightness());
-    AdjustContrast(parameters.GetContrast());
-    AdjustHue(parameters.GetHue());
-    AdjustSaturation(parameters.GetSaturation());
-    AdjustValue(parameters.GetValue());
-    AdjustCyan(parameters.GetCyan());
-    AdjustMagenta(parameters.GetMagenta());
-    AdjustYellow(parameters.GetYellow());
-    AdjustBlack(parameters.GetBlack());
+    parameters = parameters_in;
+    parameters_changed = true;
 }
 
 
 bool Image::ApplyAdjustments() {
-    if (!brightness_contrast_adjustments_layer.ParametersHaveChanged() &&
-        !hsv_adjustments_layer.ParametersHaveChanged() &&
-        !cmyk_adjustments_layer.ParametersHaveChanged()) {
-        return false;
-    }
-
-    bool image_changed = false;
-
-    adjusted_image = std::make_shared<cv::UMat>(original_image->clone());
-    brightness_contrast_adjustments_layer.SetImage(adjusted_image);
-    image_changed = brightness_contrast_adjustments_layer.Apply() || image_changed;
-
-    hsv_adjustments_layer.SetImage(adjusted_image);
-    image_changed = hsv_adjustments_layer.Apply() || image_changed;
-
-    cmyk_adjustments_layer.SetImage(adjusted_image);
-    image_changed = cmyk_adjustments_layer.Apply() || image_changed;
-
-    return image_changed;
+    return ApplyAdjustmentsRegion(ImVec2(0, 0), ImVec2(original_image->cols, original_image->rows));
 }
 
 
 bool Image::ApplyAdjustmentsRegion(const ImVec2 &top_left, const ImVec2 &bottom_right) {
-    if (!brightness_contrast_adjustments_layer.ParametersHaveChanged() &&
-        !hsv_adjustments_layer.ParametersHaveChanged() &&
-        !cmyk_adjustments_layer.ParametersHaveChanged()) {
+    // Test whether the region is valid
+    if (top_left.x < 0 || top_left.y < 0 || bottom_right.x > original_image->cols || bottom_right.y > original_image->rows) {
+        return false;
+    }
+
+    // No need to run the pipeline if the parameters have not changed
+    if (!parameters_changed) {
         return false;
     }
 
@@ -133,6 +67,8 @@ bool Image::ApplyAdjustmentsRegion(const ImVec2 &top_left, const ImVec2 &bottom_
 
     cmyk_adjustments_layer.SetImage(adjusted_image);
     image_changed = cmyk_adjustments_layer.ApplyRegion(top_left, bottom_right) || image_changed;
+
+    parameters_changed = false;
 
     return image_changed;
 }

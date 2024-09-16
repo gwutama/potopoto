@@ -1,7 +1,6 @@
 #ifndef POTOPOTO_IMAGE_H
 #define POTOPOTO_IMAGE_H
 
-#include <opencv2/opencv.hpp>
 #include <string>
 #include <map>
 
@@ -11,6 +10,7 @@
 #include <GL/gl.h>
 #endif
 
+#include <opencv2/opencv.hpp>
 #include <imgui.h>
 
 #include "AdjustmentsParameters.h"
@@ -24,37 +24,26 @@ public:
     Image(const std::shared_ptr<cv::UMat>& in_image);
     ~Image();
 
-    void LoadToTexture(GLuint& texture);
-
     int GetWidth() const { return adjusted_image->cols; }
     int GetHeight() const { return adjusted_image->rows; }
 
     std::unordered_map<std::string, std::string> GetImageInfo() const { return image_info; }
 
-    void AdjustBrightness(float value);
-    void AdjustContrast(float value);
-
-    void AdjustHue(float value);
-    void AdjustSaturation(float value);
-    void AdjustValue(float value);
-
-    void AdjustCyan(float value);
-    void AdjustMagenta(float value);
-    void AdjustYellow(float value);
-    void AdjustBlack(float value);
-
-    void AdjustParameters(const AdjustmentsParameters& parameters);
+    void AdjustParameters(const AdjustmentsParameters& parameters_in);
 
     virtual bool ApplyAdjustments();
     virtual bool ApplyAdjustmentsRegion(const ImVec2& top_left, const ImVec2& bottom_right);
 
 protected:
-    void UpdateImageInfo();
+    virtual void UpdateImageInfo();
 
 protected:
     std::shared_ptr<cv::UMat> original_image;
     std::shared_ptr<cv::UMat> adjusted_image;
     std::unordered_map<std::string, std::string> image_info;
+
+    AdjustmentsParameters parameters;
+    bool parameters_changed;
 
     LayerBrightnessContrast brightness_contrast_adjustments_layer;
     LayerHueSaturationValue hsv_adjustments_layer;
