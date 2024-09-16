@@ -82,7 +82,8 @@ void ImageEditor::OnOpenClicked(const std::string &filename) {
         return;
     }
 
-    image_preview = std::make_shared<ImagePreview>(my_image);
+    auto image = std::make_shared<Image>(my_image);
+    image_preview = std::make_shared<ImagePreview>(image);
     canvas.SetImage(image_preview);
 
     metadata_reader.Load(filename);
@@ -114,9 +115,11 @@ void ImageEditor::OnImageAdjustmentsParametersChanged(const AdjustmentsParameter
     {
 #pragma omp section
         {
-            auto region = canvas.GetViewableRegion();
+            // TODO: Improve performance by only applying adjustments to the visible region
+            // auto region = canvas.GetViewableRegion();
+            // image_preview->ApplyAdjustmentsRegion(region.first, region.second);
             image_preview->AdjustParameters(parameters);
-            image_preview->ApplyAdjustmentsRegion(region.first, region.second);
+            image_preview->ApplyAdjustmentsForCurrentLod();
             canvas.UpdateTexture(); // Update the texture with the adjusted image
         }
 #pragma omp section
@@ -145,7 +148,7 @@ void ImageEditor::RenderImageAnalysisTabs() {
 
         if (ImGui::BeginTabItem("Image")) {
             if (image_preview != nullptr) {
-                image_info.Render(image_preview->GetImageInfo());
+                image_info.Render(image_preview->GetImageCurrentLod()->GetImageInfo());
             }
 
             ImGui::EndTabItem();
@@ -176,4 +179,5 @@ void ImageEditor::RenderImageAnalysisTabs() {
 
 void ImageEditor::OnImageAdjustmentsMouseReleased() {
     std::cout << "OnImageAdjustmentsMouseReleased(): Mouse released" << std::endl;
+    image_preview->ApplyAdjustmentsForNonCurrentLodsAsync();
 }

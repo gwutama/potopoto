@@ -13,5 +13,7 @@ bool ImageApplyAdjustmentsTask::Execute() {
     }
 
     std::cout << "Running image adjustments task" << std::endl;
-    return image->ApplyAdjustments();
+    bool ok = image->ApplyAdjustments();
+    std::cout << "Image adjustments task completed" << std::endl;
+    return ok;
 }

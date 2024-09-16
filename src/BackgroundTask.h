@@ -96,7 +96,6 @@ protected:
     // Derived classes must implement this method to define the background task
     virtual ResultType Execute() = 0;
 
-private:
     // Method to execute the task in a thread
     void ExecuteTask() {
         ResultType task_result;
@@ -126,6 +125,7 @@ private:
         cv.notify_all();
     }
 
+protected:
     mutable std::mutex mutex_;
     std::condition_variable cv;
     std::optional<ResultType> result;

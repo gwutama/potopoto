@@ -22,6 +22,7 @@ public:
 private:
     void HandleZoomTool(ImGuiIO& io);
     void HandleHandTool();
+    ImagePreview::LodLevel GetLodLevelForZoom() const;
 
 private:
     ImVec2 window_size;
@@ -30,6 +31,7 @@ private:
     float zoom;
     GLuint image_texture;
     ActiveTool active_tool;
+    ImagePreview::LodLevel current_lod_level;
 };
 
 

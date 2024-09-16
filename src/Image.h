@@ -34,6 +34,10 @@ public:
     virtual bool ApplyAdjustments();
     virtual bool ApplyAdjustmentsRegion(const ImVec2& top_left, const ImVec2& bottom_right);
 
+    std::shared_ptr<cv::UMat> GetAdjustedImage() const { return adjusted_image; }
+
+    std::shared_ptr<Image> Clone() const;
+
 protected:
     virtual void UpdateImageInfo();
 
@@ -45,9 +49,9 @@ protected:
     AdjustmentsParameters parameters;
     bool parameters_changed;
 
-    LayerBrightnessContrast brightness_contrast_adjustments_layer;
-    LayerHueSaturationValue hsv_adjustments_layer;
-    LayerCmyk cmyk_adjustments_layer;
+    std::shared_ptr<LayerBrightnessContrast> brightness_contrast_adjustments_layer;
+    std::shared_ptr<LayerHueSaturationValue> hsv_adjustments_layer;
+    std::shared_ptr<LayerCmyk> cmyk_adjustments_layer;
 };
 
 #endif //POTOPOTO_IMAGE_H
