@@ -3,6 +3,7 @@
 #include <iostream>
 #include <algorithm>
 #include "../ImageReader.h"
+#include "UiUtils.h"
 
 
 ImageEditor::ImageEditor() {
@@ -116,9 +117,10 @@ void ImageEditor::OnImageAdjustmentsParametersChanged(const AdjustmentsParameter
 #pragma omp section
         {
             // Improve performance by only applying adjustments to the visible region
-             auto region = canvas.GetViewableRegion();
+            auto region = canvas.GetViewableRegion();
             image_preview->AdjustParameters(parameters);
-            image_preview->ApplyAdjustmentsForPreviewRegion(region.first, region.second);
+            image_preview->ApplyAdjustmentsForPreviewRegion(UiUtils::ImVec2ToCvPoint(region.first),
+                                                            UiUtils::ImVec2ToCvPoint(region.second));
             canvas.UpdateTexture(); // Update the texture with the adjusted image
         }
 #pragma omp section

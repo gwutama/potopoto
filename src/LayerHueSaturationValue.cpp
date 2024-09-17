@@ -45,7 +45,7 @@ void LayerHueSaturationValue::SetValue(float in_value) {
 }
 
 
-bool LayerHueSaturationValue::Process(const ImVec2& top_left, const ImVec2& bottom_right) {
+bool LayerHueSaturationValue::Process(const cv::Point& top_left, const cv::Point& bottom_right) {
     // Input image is RGBA - Output image is RGBA
     if (hue == DEFAULT_HUE && saturation == DEFAULT_SATURATION && value == DEFAULT_VALUE) {
         return false;
@@ -59,10 +59,10 @@ bool LayerHueSaturationValue::Process(const ImVec2& top_left, const ImVec2& bott
     cv::split(hsv_image, hsv_channels);
 
     // Define region of interest (ROI) based on top-left and bottom-right coordinates
-    int x_start = static_cast<int>(std::clamp(top_left.x, 0.0f, static_cast<float>(image_adjusted->cols)));
-    int y_start = static_cast<int>(std::clamp(top_left.y, 0.0f, static_cast<float>(image_adjusted->rows)));
-    int x_end = static_cast<int>(std::clamp(bottom_right.x, 0.0f, static_cast<float>(image_adjusted->cols)));
-    int y_end = static_cast<int>(std::clamp(bottom_right.y, 0.0f, static_cast<float>(image_adjusted->rows)));
+    int x_start = std::clamp(top_left.x, 0, image_adjusted->cols);
+    int y_start = std::clamp(top_left.y, 0, image_adjusted->rows);
+    int x_end = std::clamp(bottom_right.x, 0, image_adjusted->cols);
+    int y_end = std::clamp(bottom_right.y, 0, image_adjusted->rows);
 
     cv::Rect region_of_interest(x_start, y_start, x_end - x_start, y_end - y_start);
 

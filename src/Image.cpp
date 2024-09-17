@@ -45,11 +45,11 @@ void Image::AdjustParameters(const AdjustmentsParameters &parameters_in) {
 
 
 bool Image::ApplyAdjustments() {
-    return ApplyAdjustmentsRegion(ImVec2(0, 0), ImVec2(original_image->cols, original_image->rows));
+    return ApplyAdjustmentsRegion(cv::Point(0, 0), cv::Point(original_image->cols, original_image->rows));
 }
 
 
-bool Image::ApplyAdjustmentsRegion(const ImVec2 &top_left, const ImVec2 &bottom_right) {
+bool Image::ApplyAdjustmentsRegion(const cv::Point& top_left, const cv::Point& bottom_right) {
     // Test whether the region is valid
     if (top_left.x < 0 || top_left.y < 0 || bottom_right.x > original_image->cols || bottom_right.y > original_image->rows) {
         return false;

@@ -1,7 +1,7 @@
 #ifndef POTOPOTO_LAYERCMYK_H
 #define POTOPOTO_LAYERCMYK_H
 
-#include <imgui.h>
+#include <opencv2/opencv.hpp>
 #include "LayerBase.h"
 
 class LayerCmyk : public LayerBase {
@@ -23,7 +23,7 @@ public:
 
 private:
     std::string GetName() override { return "Cmyk"; }
-    bool Process(const ImVec2& top_left, const ImVec2& bottom_right) override;
+    bool Process(const cv::Point& top_left, const cv::Point& bottom_right) override;
 
 private:
     float cyan;

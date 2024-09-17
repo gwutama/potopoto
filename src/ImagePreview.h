@@ -30,7 +30,7 @@ public:
     void LoadCurrentLodToTexture(GLuint& texture);
 
     void AdjustParameters(const AdjustmentsParameters& parameters_in);
-    bool ApplyAdjustmentsForPreviewRegion(const ImVec2 &top_left, const ImVec2 &bottom_right);
+    bool ApplyAdjustmentsForPreviewRegion(const cv::Point& top_left, const cv::Point& bottom_right);
     void ApplyAdjustmentsForAllLodsAsync();
 
     void SetLodLevel(LodLevel lod_level);

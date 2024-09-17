@@ -48,6 +48,7 @@ set(SRC_FILES
         ui/ImageInfo.cpp
         ui/Menubar.cpp
         ui/Toolbar.cpp
+        ui/UiUtils.cpp
         AdjustmentsParameters.h
         BackgroundTask.h
         Image.cpp

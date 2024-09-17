@@ -11,7 +11,6 @@
 #endif
 
 #include <opencv2/opencv.hpp>
-#include <imgui.h>
 
 #include "AdjustmentsParameters.h"
 #include "LayerBrightnessContrast.h"
@@ -32,7 +31,7 @@ public:
     void AdjustParameters(const AdjustmentsParameters& parameters_in);
 
     virtual bool ApplyAdjustments();
-    virtual bool ApplyAdjustmentsRegion(const ImVec2& top_left, const ImVec2& bottom_right);
+    virtual bool ApplyAdjustmentsRegion(const cv::Point& top_left, const cv::Point& bottom_right);
 
     std::shared_ptr<cv::UMat> GetAdjustedImage() const { return adjusted_image; }
 
