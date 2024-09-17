@@ -43,6 +43,9 @@ int main(int argc, char* argv[]) {
 
         // Rendering
         RenderFrame();
+
+        // limit to 30 fps
+        std::this_thread::sleep_for(std::chrono::milliseconds(33));
     }
 
     // Cleanup

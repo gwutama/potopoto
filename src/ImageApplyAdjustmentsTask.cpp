@@ -12,7 +12,9 @@ bool ImageApplyAdjustmentsTask::Execute() {
         return false;
     }
 
-    std::cout << "Running image adjustments task" << std::endl;
+    std::cout << "Running image adjustments task for image with size "
+              << image->GetWidth() << "x" << image->GetHeight()
+              << std::endl;
     bool ok = image->ApplyAdjustments();
     std::cout << "Image adjustments task completed" << std::endl;
     return ok;

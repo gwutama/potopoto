@@ -7,7 +7,7 @@ const int ImagePreview::TARGET_LOD_MEDIUM_PIXELS = 8000000;
 const int ImagePreview::TARGET_LOD_HIGH_PIXELS = 12000000;
 
 
-ImagePreview::ImagePreview(const std::shared_ptr<Image>& in_image) {
+ImagePreview::ImagePreview(const std::shared_ptr<Image>& in_image) : current_lod_level(LodLevel::UNDEFINED) {
     GenerateLodImages(in_image);
 }
 
@@ -17,20 +17,45 @@ ImagePreview::~ImagePreview() {
 
 
 void ImagePreview::LoadCurrentLodToTexture(GLuint &texture) {
-    // Only load if the task is not running otherwise it will be broken
-    if (!apply_adjustments_tasks.at(current_lod_level)->IsRunning()) {
-        LoadToTexture(current_lod_level, texture);
+    if (current_lod_level == LodLevel::UNDEFINED) {
+        return;
+    }
+
+    // Check if a task exists for the current LOD level
+    auto task_iter = apply_adjustments_tasks.find(current_lod_level);
+    bool task_exists = (task_iter != apply_adjustments_tasks.end());
+
+    if (task_exists) {
+        auto task = task_iter->second;
+
+        if (task->IsRunning()) {
+            // Task is still running, load the partial image to the texture
+            LoadToTexture(partial_lod_image, texture);
+        } else {
+            // Task is completed, reset and erase it
+            task_iter->second.reset();
+            apply_adjustments_tasks.erase(task_iter);
+            LoadToTexture(lod_images.at(current_lod_level), texture);
+        }
+    } else {
+        // task does not exist (anymore?). Which one was the last one?
+        auto lod_image = lod_images.at(current_lod_level);
+
+        if (lod_image->GetLastAdjustmentTime() > partial_lod_image->GetLastAdjustmentTime()) {
+            LoadToTexture(lod_image, texture);
+        } else {
+            LoadToTexture(partial_lod_image, texture);
+        }
     }
 }
 
 
-void ImagePreview::LoadToTexture(LodLevel lod_level, GLuint& texture) {
+void ImagePreview::LoadToTexture(const std::shared_ptr<Image>& lod_image, GLuint& texture) {
     if (texture) {
         glDeleteTextures(1, &texture);
     }
 
     // Download the data from UMat to Mat
-    auto lod_image = lod_images.at(lod_level);
     cv::Mat imageMat = lod_image->GetAdjustedImage()->getMat(cv::ACCESS_READ);
 
     glGenTextures(1, &texture);
@@ -39,8 +64,6 @@ void ImagePreview::LoadToTexture(LodLevel lod_level, GLuint& texture) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageMat.cols, imageMat.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageMat.data);
     glBindTexture(GL_TEXTURE_2D, 0);
-
-    current_lod_level = lod_level;
 }
 
 
@@ -49,18 +72,12 @@ void ImagePreview::GenerateLodImages(const std::shared_ptr<Image>& in_image) {
 
     std::shared_ptr<Image> lod_low = GenerateLodImage(in_image, LodLevel::LOW);
     lod_images.insert({LodLevel::LOW, lod_low});
-    auto lod_low_task = std::make_shared<ImageApplyAdjustmentsTask>(lod_low, std::chrono::seconds (600));
-    apply_adjustments_tasks.insert({LodLevel::LOW, lod_low_task});
 
     std::shared_ptr<Image> lod_medium = GenerateLodImage(in_image, LodLevel::MEDIUM);
     lod_images.insert({LodLevel::MEDIUM, lod_medium});
-    auto lod_medium_task = std::make_shared<ImageApplyAdjustmentsTask>(lod_medium, std::chrono::seconds (600));
-    apply_adjustments_tasks.insert({LodLevel::MEDIUM, lod_medium_task});
 
     std::shared_ptr<Image> lod_high = GenerateLodImage(in_image, LodLevel::HIGH);
     lod_images.insert({LodLevel::HIGH, lod_high});
-    auto lod_high_task = std::make_shared<ImageApplyAdjustmentsTask>(lod_high, std::chrono::seconds (600));
-    apply_adjustments_tasks.insert({LodLevel::HIGH, lod_high_task});
 }
 
 
@@ -119,20 +136,52 @@ void ImagePreview::AdjustParameters(const AdjustmentsParameters& parameters_in) 
     lod_images.at(LodLevel::LOW)->AdjustParameters(parameters);
     lod_images.at(LodLevel::MEDIUM)->AdjustParameters(parameters);
     lod_images.at(LodLevel::HIGH)->AdjustParameters(parameters);
+    partial_lod_image->AdjustParameters(parameters);
 }
 
 
-bool ImagePreview::ApplyAdjustmentsForCurrentLod() {
-    return lod_images.at(current_lod_level)->ApplyAdjustments();
-}
-
-
-void ImagePreview::ApplyAdjustmentsForNonCurrentLodsAsync() {
-    // For the rest, apply the adjustments in background tasks
-    for (auto& task : apply_adjustments_tasks) {
-        if (task.first != current_lod_level) {
-            task.second->Stop();
-            task.second->Run();
-        }
+bool ImagePreview::ApplyAdjustmentsForPreviewRegion(const ImVec2 &top_left, const ImVec2 &bottom_right) {
+    if (partial_lod_image == nullptr || current_lod_level == LodLevel::UNDEFINED) {
+        return false;
     }
+
+    std::cout << "Applying adjustments for current LOD with top left " << top_left.x << ", " << top_left.y
+              << " and bottom right " << bottom_right.x << ", " << bottom_right.y << std::endl;
+
+    return partial_lod_image->ApplyAdjustmentsRegion(top_left, bottom_right);
+}
+
+
+void ImagePreview::ApplyAdjustmentsForAllLodsAsync() {
+    // Stop and remove any existing tasks
+    for (auto& task : apply_adjustments_tasks) {
+        task.second->Stop();
+    }
+
+    apply_adjustments_tasks.clear();
+
+    auto lod_low_task = std::make_shared<ImageApplyAdjustmentsTask>(lod_images.at(LodLevel::LOW),
+                                                                    std::chrono::seconds (600));
+    apply_adjustments_tasks.insert({LodLevel::LOW, lod_low_task});
+    lod_low_task->Run();
+
+    auto lod_medium_task = std::make_shared<ImageApplyAdjustmentsTask>(lod_images.at(LodLevel::MEDIUM),
+                                                                       std::chrono::seconds (600));
+    apply_adjustments_tasks.insert({LodLevel::MEDIUM, lod_medium_task});
+    lod_medium_task->Run();
+
+    auto lod_high_task = std::make_shared<ImageApplyAdjustmentsTask>(lod_images.at(LodLevel::HIGH),
+                                                                     std::chrono::seconds (600));
+    apply_adjustments_tasks.insert({LodLevel::HIGH, lod_high_task});
+    lod_high_task->Run();
+}
+
+
+void ImagePreview::SetLodLevel(ImagePreview::LodLevel lod_level) {
+    if (lod_level == current_lod_level || lod_level == LodLevel::UNDEFINED) {
+        return;
+    }
+
+    current_lod_level = lod_level;
+    partial_lod_image = lod_images.at(lod_level)->Clone();
 }

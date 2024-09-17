@@ -38,6 +38,8 @@ public:
 
     std::shared_ptr<Image> Clone() const;
 
+    std::chrono::time_point<std::chrono::system_clock> GetLastAdjustmentTime() const { return last_adjustment_time; }
+
 protected:
     virtual void UpdateImageInfo();
 
@@ -52,6 +54,9 @@ protected:
     std::shared_ptr<LayerBrightnessContrast> brightness_contrast_adjustments_layer;
     std::shared_ptr<LayerHueSaturationValue> hsv_adjustments_layer;
     std::shared_ptr<LayerCmyk> cmyk_adjustments_layer;
+
+    // adjustment timestamp
+    std::chrono::time_point<std::chrono::system_clock> last_adjustment_time;
 };
 
 #endif //POTOPOTO_IMAGE_H

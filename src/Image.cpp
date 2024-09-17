@@ -74,6 +74,8 @@ bool Image::ApplyAdjustmentsRegion(const ImVec2 &top_left, const ImVec2 &bottom_
 
     parameters_changed = false;
 
+    last_adjustment_time = std::chrono::system_clock::now();
+
     return image_changed;
 }
 

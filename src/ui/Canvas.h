@@ -11,7 +11,7 @@ public:
     Canvas();
     ~Canvas() = default;
 
-    void SetImage(std::shared_ptr<ImagePreview> my_image) { image = my_image; }
+    void SetImagePreview(std::shared_ptr<ImagePreview> my_image_preview) { image_preview = my_image_preview; }
     void Reset();
     void Render();
     void SetActiveTool(ActiveTool tool) { active_tool = tool; }
@@ -27,7 +27,7 @@ private:
 private:
     ImVec2 window_size;
     ImVec2 scroll_offset;
-    std::shared_ptr<ImagePreview> image;
+    std::shared_ptr<ImagePreview> image_preview;
     float zoom;
     GLuint image_texture;
     ActiveTool active_tool;

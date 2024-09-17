@@ -13,20 +13,20 @@ void Canvas::Reset() {
     zoom = std::numeric_limits<float>::min();
     glDeleteTextures(1, &image_texture);
     image_texture = 0;
-    current_lod_level = ImagePreview::LodLevel::LOW;
+    current_lod_level = ImagePreview::LodLevel::UNDEFINED;
 }
 
 
 void Canvas::Render() {
-    if (image == nullptr) {
+    if (image_preview == nullptr) {
         return;
     }
 
     ImGuiIO &io = ImGui::GetIO();
 
     // Image Viewer Scrollable Region
-    ImVec2 image_size = ImVec2(static_cast<float>(image->GetImageCurrentLod()->GetWidth()),
-                               static_cast<float>(image->GetImageCurrentLod()->GetHeight()));
+    ImVec2 image_size = ImVec2(static_cast<float>(image_preview->GetImageCurrentLod()->GetWidth()),
+                               static_cast<float>(image_preview->GetImageCurrentLod()->GetHeight()));
     window_size = ImGui::GetContentRegionAvail();
 
     // Set initial zoom level to fit the image in the view area if zoom is at default
@@ -62,13 +62,7 @@ void Canvas::Render() {
     // Set the cursor position to center the image
     ImGui::SetCursorPos(ImVec2(offset_x, offset_y));
 
-    // Dynamically determine the LOD level based on zoom
-    ImagePreview::LodLevel lod_level = GetLodLevelForZoom();
-
-    if (lod_level != current_lod_level) {
-        current_lod_level = lod_level;
-        UpdateTexture();
-    }
+    UpdateTexture();
 
     // Render the image
     ImGui::Image((void *)(intptr_t)image_texture, scaled_image_size);
@@ -93,7 +87,7 @@ void Canvas::HandleZoomTool(ImGuiIO& io) {
             (mouse_pos.y - window_pos.y + window_scroll.y) / zoom
     );
 
-    float zoom_factor = 1.02f; // Zoom speed factor
+    float zoom_factor = 1.04f; // Zoom speed factor
     zoom = (io.MouseWheel > 0.0f) ? zoom * zoom_factor : zoom / zoom_factor;
     zoom = std::clamp(zoom, 0.1f, 10.0f);
     io.WantCaptureMouse = true;
@@ -105,7 +99,8 @@ void Canvas::HandleZoomTool(ImGuiIO& io) {
     ImGui::SetScrollX(scroll_offset.x);
     ImGui::SetScrollY(scroll_offset.y);
 
-    std::cout << "Zoom: " << zoom << std::endl;
+    // TODO: Show in subtoolbar
+    // std::cout << "Zoom: " << zoom << std::endl;
 }
 
 
@@ -120,28 +115,27 @@ void Canvas::HandleHandTool() {
 
 
 void Canvas::UpdateTexture() {
-    if (image == nullptr) {
+    if (image_preview == nullptr) {
         return;
     }
 
     // Determine LOD level based on zoom factor
     ImagePreview::LodLevel lod_level = GetLodLevelForZoom();
 
-    // Load the appropriate LOD texture based on the current zoom level
-    std::cout << "Loading LOD texture for zoom level " << static_cast<int>(lod_level) << std::endl;
-    image->SetLodLevel(lod_level);
-    image->LoadCurrentLodToTexture(image_texture);
+    image_preview->SetLodLevel(lod_level);
+    image_preview->LoadCurrentLodToTexture(image_texture);
+    current_lod_level = lod_level;
 }
 
 
 std::pair<ImVec2, ImVec2> Canvas::GetViewableRegion() const {
-    if (image == nullptr) {
+    if (image_preview == nullptr) {
         return { ImVec2(0, 0), ImVec2(0, 0) };
     }
 
     // Get the original size of the image
-    ImVec2 image_size(static_cast<float>(image->GetImageCurrentLod()->GetWidth()),
-                      static_cast<float>(image->GetImageCurrentLod()->GetHeight()));
+    ImVec2 image_size(static_cast<float>(image_preview->GetImageCurrentLod()->GetWidth()),
+                      static_cast<float>(image_preview->GetImageCurrentLod()->GetHeight()));
 
     // Calculate the scaled image size according to the current zoom level
     ImVec2 scaled_image_size = ImVec2(image_size.x * zoom, image_size.y * zoom);
