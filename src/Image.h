@@ -16,6 +16,7 @@
 #include "LayerBrightnessContrast.h"
 #include "LayerHueSaturationValue.h"
 #include "LayerCmyk.h"
+#include "LayerLightness.h"
 
 
 class Image {
@@ -52,6 +53,7 @@ protected:
 
     std::shared_ptr<LayerBrightnessContrast> brightness_contrast_adjustments_layer;
     std::shared_ptr<LayerHueSaturationValue> hsv_adjustments_layer;
+    std::shared_ptr<LayerLightness> lightness_adjustments_layer;
     std::shared_ptr<LayerCmyk> cmyk_adjustments_layer;
 
     // adjustment timestamp

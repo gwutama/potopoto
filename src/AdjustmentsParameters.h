@@ -3,6 +3,7 @@
 
 #include "LayerBrightnessContrast.h"
 #include "LayerHueSaturationValue.h"
+#include "LayerLightness.h"
 #include "LayerCmyk.h"
 
 
@@ -19,6 +20,8 @@ public:
         saturation = LayerHueSaturationValue::DEFAULT_SATURATION;
         value = LayerHueSaturationValue::DEFAULT_VALUE;
 
+        lightness = LayerLightness::DEFAULT_LIGHTNESS;
+
         cyan = LayerCmyk::DEFAULT_CYAN;
         magenta = LayerCmyk::DEFAULT_MAGENTA;
         yellow = LayerCmyk::DEFAULT_YELLOW;
@@ -31,6 +34,7 @@ public:
                hue == other.hue &&
                saturation == other.saturation &&
                value == other.value &&
+                lightness == other.lightness &&
                cyan == other.cyan &&
                magenta == other.magenta &&
                yellow == other.yellow &&
@@ -52,6 +56,9 @@ public:
     float GetValue() const { return value; }
     void SetValue(float value) { this->value = value; }
 
+    float GetLightness() const { return lightness; }
+    void SetLightness(float value) { lightness = value; }
+
     float GetCyan() const { return cyan; }
     void SetCyan(float value) { cyan = value; }
 
@@ -71,6 +78,8 @@ private:
     float hue;
     float saturation;
     float value;
+
+    float lightness;
 
     float cyan;
     float magenta;

@@ -9,6 +9,7 @@ Image::Image(const std::shared_ptr<cv::UMat>& in_image) {
 
     brightness_contrast_adjustments_layer = std::make_shared<LayerBrightnessContrast>();
     hsv_adjustments_layer = std::make_shared<LayerHueSaturationValue>();
+    lightness_adjustments_layer = std::make_shared<LayerLightness>();
     cmyk_adjustments_layer = std::make_shared<LayerCmyk>();
 
     UpdateImageInfo();
@@ -33,6 +34,8 @@ void Image::AdjustParameters(const AdjustmentsParameters &parameters_in) {
     hsv_adjustments_layer->SetHue(parameters_in.GetHue());
     hsv_adjustments_layer->SetSaturation(parameters_in.GetSaturation());
     hsv_adjustments_layer->SetValue(parameters_in.GetValue());
+
+    lightness_adjustments_layer->SetLightness(parameters_in.GetLightness());
 
     cmyk_adjustments_layer->SetCyan(parameters_in.GetCyan());
     cmyk_adjustments_layer->SetMagenta(parameters_in.GetMagenta());
@@ -63,11 +66,15 @@ bool Image::ApplyAdjustmentsRegion(const cv::Point& top_left, const cv::Point& b
     bool image_changed = false;
 
     adjusted_image = std::make_shared<cv::UMat>(original_image->clone());
+
     brightness_contrast_adjustments_layer->SetImage(adjusted_image);
     image_changed = brightness_contrast_adjustments_layer->ApplyRegion(top_left, bottom_right) || image_changed;
 
     hsv_adjustments_layer->SetImage(adjusted_image);
     image_changed = hsv_adjustments_layer->ApplyRegion(top_left, bottom_right) || image_changed;
+
+    lightness_adjustments_layer->SetImage(adjusted_image);
+    image_changed = lightness_adjustments_layer->ApplyRegion(top_left, bottom_right) || image_changed;
 
     cmyk_adjustments_layer->SetImage(adjusted_image);
     image_changed = cmyk_adjustments_layer->ApplyRegion(top_left, bottom_right) || image_changed;

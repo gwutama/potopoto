@@ -61,6 +61,7 @@ set(SRC_FILES
         LayerBrightnessContrast.cpp
         LayerCmyk.cpp
         LayerHueSaturationValue.cpp
+        LayerLightness.cpp
         main.cpp
         MetadataReader.cpp
         WindowManager.cpp

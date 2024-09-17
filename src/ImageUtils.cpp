@@ -327,3 +327,29 @@ cv::UMat ImageUtils::CropImage(const cv::UMat& rgba_image, const cv::Rect& roi) 
     // Crop the image to the safe ROI
     return rgba_image(safe_roi).clone();
 }
+
+
+cv::UMat ImageUtils::RgbaToHls(const cv::UMat& rgba_image) {
+    // Convert RGBA to RGB color space
+    cv::UMat rgb_image;
+    cv::cvtColor(rgba_image, rgb_image, cv::COLOR_RGBA2RGB);
+
+    // Convert RGB to HLS color space
+    cv::UMat hcl_image;
+    cv::cvtColor(rgb_image, hcl_image, cv::COLOR_RGB2HLS);
+
+    return hcl_image;
+}
+
+
+cv::UMat ImageUtils::HlsToRgba(const cv::UMat &hls_image) {
+    // Convert HLS to RGB color space
+    cv::UMat rgb_image;
+    cv::cvtColor(hls_image, rgb_image, cv::COLOR_HLS2RGB);
+
+    // Convert RGB to RGBA
+    cv::UMat rgba_image;
+    cv::cvtColor(rgb_image, rgba_image, cv::COLOR_RGB2RGBA);
+
+    return rgba_image;
+}

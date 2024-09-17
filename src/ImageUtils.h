@@ -15,6 +15,8 @@ public:
     static void ResizeImageByWidth(const cv::UMat& inputImage, cv::UMat& outputImage, int newWidth);
     static void ResizeImageByHeight(const cv::UMat& inputImage, cv::UMat& outputImage, int newHeight);
     static cv::UMat CropImage(const cv::UMat& rgba_image, const cv::Rect& roi);
+    static cv::UMat RgbaToHls(const cv::UMat& rgba_image);
+    static cv::UMat HlsToRgba(const cv::UMat& hls_image);
 };
 
 

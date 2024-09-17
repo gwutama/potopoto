@@ -14,6 +14,8 @@ void ImageAdjustments::Render() {
     float saturation = adjustments_parameters.GetSaturation();
     float value = adjustments_parameters.GetValue();
 
+    float lightness = adjustments_parameters.GetLightness();
+
     float cyan = adjustments_parameters.GetCyan();
     float magenta = adjustments_parameters.GetMagenta();
     float yellow = adjustments_parameters.GetYellow();
@@ -69,6 +71,17 @@ void ImageAdjustments::Render() {
     if (ImGui::SliderFloat("Value", &value, -128.0f, 128.0f, "%.0f")) {
         if (value != adjustments_parameters.GetValue()) {
             adjustments_parameters.SetValue(value);
+            changed = true;
+        }
+    }
+
+    if (ImGui::IsItemDeactivatedAfterEdit()) {
+        mouse_released();
+    }
+
+    if (ImGui::SliderFloat("Lightness", &lightness, -128.0f, 128.0f, "%.0f")) {
+        if (lightness != adjustments_parameters.GetLightness()) {
+            adjustments_parameters.SetLightness(lightness);
             changed = true;
         }
     }
