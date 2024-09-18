@@ -10,6 +10,9 @@ Image::Image(const std::shared_ptr<cv::UMat>& in_image) {
     brightness_contrast_adjustments_layer = std::make_shared<LayerBrightnessContrast>();
     hsv_adjustments_layer = std::make_shared<LayerHueSaturationValue>();
     lightness_adjustments_layer = std::make_shared<LayerLightness>();
+    white_balance_adjustments_layer = std::make_shared<LayerWhiteBalance>();
+    gamma_adjustments_layer = std::make_shared<LayerGamma>();
+    shadow_adjustments_layer = std::make_shared<LayerShadow>();
     cmyk_adjustments_layer = std::make_shared<LayerCmyk>();
 
     UpdateImageInfo();
@@ -36,6 +39,12 @@ void Image::AdjustParameters(const AdjustmentsParameters &parameters_in) {
     hsv_adjustments_layer->SetValue(parameters_in.GetValue());
 
     lightness_adjustments_layer->SetLightness(parameters_in.GetLightness());
+
+    white_balance_adjustments_layer->SetSaturationThreshold(parameters_in.GetWhiteBalanceSaturationThreshold());
+
+    gamma_adjustments_layer->SetGamma(parameters_in.GetGamma());
+
+    shadow_adjustments_layer->SetShadow(parameters_in.GetShadow());
 
     cmyk_adjustments_layer->SetCyan(parameters_in.GetCyan());
     cmyk_adjustments_layer->SetMagenta(parameters_in.GetMagenta());
@@ -75,6 +84,15 @@ bool Image::ApplyAdjustmentsRegion(const cv::Point& top_left, const cv::Point& b
 
     lightness_adjustments_layer->SetImage(adjusted_image);
     image_changed = lightness_adjustments_layer->ApplyRegion(top_left, bottom_right) || image_changed;
+
+    white_balance_adjustments_layer->SetImage(adjusted_image);
+    image_changed = white_balance_adjustments_layer->ApplyRegion(top_left, bottom_right) || image_changed;
+
+    gamma_adjustments_layer->SetImage(adjusted_image);
+    image_changed = gamma_adjustments_layer->ApplyRegion(top_left, bottom_right) || image_changed;
+
+    shadow_adjustments_layer->SetImage(adjusted_image);
+    image_changed = shadow_adjustments_layer->ApplyRegion(top_left, bottom_right) || image_changed;
 
     cmyk_adjustments_layer->SetImage(adjusted_image);
     image_changed = cmyk_adjustments_layer->ApplyRegion(top_left, bottom_right) || image_changed;

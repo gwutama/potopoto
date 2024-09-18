@@ -16,6 +16,12 @@ void ImageAdjustments::Render() {
 
     float lightness = adjustments_parameters.GetLightness();
 
+    float white_balance_saturation_threshold = adjustments_parameters.GetWhiteBalanceSaturationThreshold();
+
+    float gamma = adjustments_parameters.GetGamma();
+
+    float shadow = adjustments_parameters.GetShadow();
+
     float cyan = adjustments_parameters.GetCyan();
     float magenta = adjustments_parameters.GetMagenta();
     float yellow = adjustments_parameters.GetYellow();
@@ -82,6 +88,39 @@ void ImageAdjustments::Render() {
     if (ImGui::SliderFloat("Lightness", &lightness, -128.0f, 128.0f, "%.0f")) {
         if (lightness != adjustments_parameters.GetLightness()) {
             adjustments_parameters.SetLightness(lightness);
+            changed = true;
+        }
+    }
+
+    if (ImGui::IsItemDeactivatedAfterEdit()) {
+        mouse_released();
+    }
+
+    if (ImGui::SliderFloat("White Balance", &white_balance_saturation_threshold, 0.0f, 1.0f, "%.2f")) {
+        if (white_balance_saturation_threshold != adjustments_parameters.GetWhiteBalanceSaturationThreshold()) {
+            adjustments_parameters.SetWhiteBalanceSaturationThreshold(white_balance_saturation_threshold);
+            changed = true;
+        }
+    }
+
+    if (ImGui::IsItemDeactivatedAfterEdit()) {
+        mouse_released();
+    }
+
+    if (ImGui::SliderFloat("Gamma", &gamma, 0.0f, 10.0f, "%.2f")) {
+        if (gamma != adjustments_parameters.GetGamma()) {
+            adjustments_parameters.SetGamma(gamma);
+            changed = true;
+        }
+    }
+
+    if (ImGui::IsItemDeactivatedAfterEdit()) {
+        mouse_released();
+    }
+
+    if (ImGui::SliderFloat("Shadow", &shadow, -50.0f, 50.0f, "%.2f")) {
+        if (shadow != adjustments_parameters.GetShadow()) {
+            adjustments_parameters.SetShadow(shadow);
             changed = true;
         }
     }

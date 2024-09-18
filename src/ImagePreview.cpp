@@ -145,9 +145,6 @@ bool ImagePreview::ApplyAdjustmentsForPreviewRegion(const cv::Point& top_left, c
         return false;
     }
 
-    std::cout << "Applying adjustments for current LOD with top left " << top_left.x << ", " << top_left.y
-              << " and bottom right " << bottom_right.x << ", " << bottom_right.y << std::endl;
-
     return partial_lod_image->ApplyAdjustmentsRegion(top_left, bottom_right);
 }
 

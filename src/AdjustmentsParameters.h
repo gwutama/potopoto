@@ -4,6 +4,9 @@
 #include "LayerBrightnessContrast.h"
 #include "LayerHueSaturationValue.h"
 #include "LayerLightness.h"
+#include "LayerWhiteBalance.h"
+#include "LayerGamma.h"
+#include "LayerShadow.h"
 #include "LayerCmyk.h"
 
 
@@ -22,6 +25,12 @@ public:
 
         lightness = LayerLightness::DEFAULT_LIGHTNESS;
 
+        white_balance_saturation_threshold = LayerWhiteBalance::DEFAULT_SATURATION_THRESHOLD;
+
+        gamma = LayerGamma::DEFAULT_GAMMA;
+
+        shadow = LayerShadow::DEFAULT_SHADOW;
+
         cyan = LayerCmyk::DEFAULT_CYAN;
         magenta = LayerCmyk::DEFAULT_MAGENTA;
         yellow = LayerCmyk::DEFAULT_YELLOW;
@@ -34,7 +43,10 @@ public:
                hue == other.hue &&
                saturation == other.saturation &&
                value == other.value &&
-                lightness == other.lightness &&
+               lightness == other.lightness &&
+               white_balance_saturation_threshold == other.white_balance_saturation_threshold &&
+               gamma == other.gamma &&
+               shadow == other.shadow &&
                cyan == other.cyan &&
                magenta == other.magenta &&
                yellow == other.yellow &&
@@ -59,6 +71,15 @@ public:
     float GetLightness() const { return lightness; }
     void SetLightness(float value) { lightness = value; }
 
+    float GetWhiteBalanceSaturationThreshold() const { return white_balance_saturation_threshold; }
+    void SetWhiteBalanceSaturationThreshold(float value) { white_balance_saturation_threshold = value; }
+
+    float GetGamma() const { return gamma; }
+    void SetGamma(float value) { gamma = value; }
+
+    float GetShadow() const { return shadow; }
+    void SetShadow(float value) { shadow = value; }
+
     float GetCyan() const { return cyan; }
     void SetCyan(float value) { cyan = value; }
 
@@ -80,6 +101,12 @@ private:
     float value;
 
     float lightness;
+
+    float white_balance_saturation_threshold;
+
+    float gamma;
+
+    float shadow;
 
     float cyan;
     float magenta;

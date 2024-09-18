@@ -353,3 +353,29 @@ cv::UMat ImageUtils::HlsToRgba(const cv::UMat &hls_image) {
 
     return rgba_image;
 }
+
+
+cv::UMat ImageUtils::RgbaToLab(const cv::UMat& rgba_image) {
+    cv::UMat rgb_image, lab_image;
+
+    // Convert from RGBA to RGB (we don't need alpha in LAB conversion)
+    cv::cvtColor(rgba_image, rgb_image, cv::COLOR_RGBA2RGB);
+
+    // Convert RGB image to LAB color space
+    cv::cvtColor(rgb_image, lab_image, cv::COLOR_RGB2Lab);
+
+    return lab_image;
+}
+
+
+cv::UMat ImageUtils::LabToRgba(const cv::UMat& lab_image) {
+    cv::UMat rgb_image, rgba_image;
+
+    // Convert LAB image to RGB
+    cv::cvtColor(lab_image, rgb_image, cv::COLOR_Lab2RGB);
+
+    // Convert RGB to RGBA by adding an alpha channel
+    cv::cvtColor(rgb_image, rgba_image, cv::COLOR_RGB2RGBA);
+
+    return rgba_image;
+}

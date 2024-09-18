@@ -19,3 +19,6 @@
 [submodule "third-party/sigslot"]
 	path = third-party/sigslot
 	url = https://github.com/palacaze/sigslot.git
+[submodule "third-party/opencv_contrib"]
+	path = third-party/opencv_contrib
+	url = https://github.com/opencv/opencv_contrib.git

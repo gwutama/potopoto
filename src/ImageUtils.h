@@ -17,6 +17,8 @@ public:
     static cv::UMat CropImage(const cv::UMat& rgba_image, const cv::Rect& roi);
     static cv::UMat RgbaToHls(const cv::UMat& rgba_image);
     static cv::UMat HlsToRgba(const cv::UMat& hls_image);
+    static cv::UMat RgbaToLab(const cv::UMat& rgba_image);
+    static cv::UMat LabToRgba(const cv::UMat& lab_image);
 };
 
 

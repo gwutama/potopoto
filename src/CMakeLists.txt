@@ -60,8 +60,11 @@ set(SRC_FILES
         LayerBase.h
         LayerBrightnessContrast.cpp
         LayerCmyk.cpp
+        LayerGamma.cpp
         LayerHueSaturationValue.cpp
         LayerLightness.cpp
+        LayerShadow.cpp
+        LayerWhiteBalance.cpp
         main.cpp
         MetadataReader.cpp
         WindowManager.cpp
@@ -87,6 +90,7 @@ include_directories(${CMAKE_SOURCE_DIR}/third-party/opencv/modules/photo/include
 include_directories(${CMAKE_SOURCE_DIR}/third-party/opencv/modules/stitching/include)
 include_directories(${CMAKE_SOURCE_DIR}/third-party/opencv/modules/video/include)
 include_directories(${CMAKE_SOURCE_DIR}/third-party/opencv/modules/videoio/include)
+include_directories(${CMAKE_SOURCE_DIR}/third-party/opencv_contrib/modules/xphoto/include)
 
 include_directories(${CMAKE_SOURCE_DIR}/third-party/exiv2/include)
 
@@ -98,6 +102,6 @@ add_executable(potopoto ${SRC_FILES})
 # Link libraries
 target_link_libraries(potopoto PRIVATE
         SDL2::SDL2 ${OPENGL_LIBRARIES} OpenGL::GLU
-        imgui tinyfiledialogs opencv_core opencv_imgproc opencv_imgcodecs
+        imgui tinyfiledialogs opencv_core opencv_imgproc opencv_imgcodecs opencv_xphoto
         Exiv2::exiv2lib ${ICONV_LIBRARY} ${OpenMP_omp_LIBRARY}
 )
