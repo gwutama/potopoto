@@ -2,9 +2,9 @@
 #include "ImageUtils.h"
 
 
-const int ImagePreview::TARGET_LOD_LOW_PIXELS = 4000000;
-const int ImagePreview::TARGET_LOD_MEDIUM_PIXELS = 8000000;
-const int ImagePreview::TARGET_LOD_HIGH_PIXELS = 12000000;
+const int ImagePreview::TARGET_LOD_LOW_PIXELS = 3000000;
+const int ImagePreview::TARGET_LOD_MEDIUM_PIXELS = 6000000;
+const int ImagePreview::TARGET_LOD_HIGH_PIXELS = 9000000;
 
 
 ImagePreview::ImagePreview(const std::shared_ptr<Image>& in_image) : current_lod_level(LodLevel::UNDEFINED) {
