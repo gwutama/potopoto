@@ -55,7 +55,9 @@ void ImageEditor::Render() {
     // Remove decoration and scrollbars from the LeftPane
     ImGui::BeginChild("LeftPane", ImVec2(left_pane_width, available_size.y), ImGuiChildFlags_None,
                       ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar);
-    canvas.Render();
+    if (image_preview != nullptr) {
+        canvas.Render();
+    }
     ImGui::EndChild();
 
     ImGui::SameLine();
