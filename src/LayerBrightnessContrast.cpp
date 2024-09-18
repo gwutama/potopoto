@@ -30,7 +30,7 @@ void LayerBrightnessContrast::SetContrast(float in_contrast) {
 
 
 bool LayerBrightnessContrast::Process(const cv::Rect& region) {
-    // Input image is RGBA - Output image is RGBA
+    // Input image is RGB - Output image is RGB
     if (brightness == DEFAULT_BRIGHTNESS && contrast == DEFAULT_CONTRAST) {
         return false;
     }
@@ -39,10 +39,11 @@ bool LayerBrightnessContrast::Process(const cv::Rect& region) {
     float alpha = contrast * brightness; // combined scale factor
     float beta = 128 * (1 - contrast);   // combined offset for contrast adjustment
 
+    // Get the region of interest (ROI) from the RGB image
     cv::UMat region_of_interest = (*image_adjusted)(region);
-    region_of_interest.convertTo(region_of_interest, -1, alpha, beta);
+    region_of_interest.convertTo(region_of_interest, -1, alpha, beta); // -1 keeps the original depth
+
     values_have_changed = false;
 
     return true;
 }
-

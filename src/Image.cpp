@@ -77,31 +77,38 @@ bool Image::ApplyAdjustmentsRegion(const cv::Rect& region) {
 
     bool image_changed = false;
 
-    adjusted_image = std::make_shared<cv::UMat>(original_image->clone());
+    // This pipeline operates on RGB color space. Input image is however, RGBA.
+    // The alpha channel is ignored in this pipeline.
+    // Convert the image to RGB color space
+    auto rgb_image = std::make_shared<cv::UMat>();
+    cv::cvtColor(*original_image, *rgb_image, cv::COLOR_BGRA2BGR);
 
-    brightness_contrast_adjustments_layer->SetImage(adjusted_image);
+    brightness_contrast_adjustments_layer->SetImage(rgb_image);
     image_changed = brightness_contrast_adjustments_layer->ApplyRegion(region) || image_changed;
 
-    hsv_adjustments_layer->SetImage(adjusted_image);
+    hsv_adjustments_layer->SetImage(rgb_image);
     image_changed = hsv_adjustments_layer->ApplyRegion(region) || image_changed;
 
-    lightness_adjustments_layer->SetImage(adjusted_image);
+    lightness_adjustments_layer->SetImage(rgb_image);
     image_changed = lightness_adjustments_layer->ApplyRegion(region) || image_changed;
 
-    white_balance_adjustments_layer->SetImage(adjusted_image);
+    white_balance_adjustments_layer->SetImage(rgb_image);
     image_changed = white_balance_adjustments_layer->ApplyRegion(region) || image_changed;
 
-    gamma_adjustments_layer->SetImage(adjusted_image);
+    gamma_adjustments_layer->SetImage(rgb_image);
     image_changed = gamma_adjustments_layer->ApplyRegion(region) || image_changed;
 
-    shadow_adjustments_layer->SetImage(adjusted_image);
+    shadow_adjustments_layer->SetImage(rgb_image);
     image_changed = shadow_adjustments_layer->ApplyRegion(region) || image_changed;
 
-    highlight_adjustments_layer->SetImage(adjusted_image);
+    highlight_adjustments_layer->SetImage(rgb_image);
     image_changed = highlight_adjustments_layer->ApplyRegion(region) || image_changed;
 
-    cmyk_adjustments_layer->SetImage(adjusted_image);
+    cmyk_adjustments_layer->SetImage(rgb_image);
     image_changed = cmyk_adjustments_layer->ApplyRegion(region) || image_changed;
+
+    // Convert the image back to RGBA color space
+    cv::cvtColor(*rgb_image, *adjusted_image, cv::COLOR_BGR2BGRA);
 
     parameters_changed = false;
 

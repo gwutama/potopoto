@@ -58,16 +58,16 @@ void LayerCmyk::SetBlack(float in_black) {
 
 
 bool LayerCmyk::Process(const cv::Rect& region) {
-    // Input image is RGBA - Output image is RGBA
+    // Input image is RGB - Output image is RGB
     if (cyan == DEFAULT_CYAN && magenta == DEFAULT_MAGENTA && yellow == DEFAULT_YELLOW && black == DEFAULT_BLACK) {
-        return false;
+        return false; // No adjustment needed
     }
 
-    // Crop the input RGBA image to the specified ROI
-    cv::UMat cropped_rgba_image = ImageUtils::CropImage(*image_adjusted, region);
+    // Crop the input RGB image to the specified region
+    cv::UMat cropped_rgb_image = ImageUtils::CropImage(*image_adjusted, region);
 
-    // Convert the cropped RGBA image to CMYK
-    cv::UMat cmyk_image = ImageUtils::RgbaToCmyk(cropped_rgba_image);
+    // Convert the cropped RGB image to CMYK
+    cv::UMat cmyk_image = ImageUtils::RgbToCmyk(cropped_rgb_image);
 
     // Split the CMYK image into separate channels
     std::vector<cv::UMat> cmyk_channels;
@@ -105,11 +105,12 @@ bool LayerCmyk::Process(const cv::Rect& region) {
     // Merge the adjusted CMYK channels back into a single image
     cv::merge(cmyk_channels, cmyk_image);
 
-    // Convert the CMYK image back to RGBA
-    cv::UMat adjusted_rgba_image = ImageUtils::CmykToRgba(cmyk_image);
+    // Convert the CMYK image back to RGB
+    cv::UMat adjusted_rgb_image = ImageUtils::CmykToRgb(cmyk_image);
 
     // Copy the adjusted image back to the original image
-    adjusted_rgba_image.copyTo((*image_adjusted)(region));
+    adjusted_rgb_image.copyTo((*image_adjusted)(region));
 
+    values_have_changed = false;
     return true;
 }

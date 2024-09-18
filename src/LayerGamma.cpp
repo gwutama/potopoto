@@ -38,7 +38,7 @@ cv::UMat LayerGamma::GenerateLookupTable(float gamma_value) {
 
 
 bool LayerGamma::Process(const cv::Rect& region) {
-    // Input image is RGBA - Output image is RGBA
+    // Input image is RGB - Output image is RGB
     if (gamma == DEFAULT_GAMMA) {
         return false; // No adjustment needed
     }
@@ -46,6 +46,7 @@ bool LayerGamma::Process(const cv::Rect& region) {
     // Extract the region of interest from the image
     cv::UMat roi_image = (*image_adjusted)(region);
 
+    // Apply the gamma correction using the lookup table
     cv::LUT(roi_image, lookup_table, roi_image);
 
     // Replace the adjusted region back into the original image

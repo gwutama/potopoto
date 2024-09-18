@@ -46,16 +46,16 @@ void LayerHueSaturationValue::SetValue(float in_value) {
 
 
 bool LayerHueSaturationValue::Process(const cv::Rect& region) {
-    // Input image is RGBA - Output image is RGBA
+    // Input image is RGB - Output image is RGB
     if (hue == DEFAULT_HUE && saturation == DEFAULT_SATURATION && value == DEFAULT_VALUE) {
         return false; // No adjustment needed
     }
 
     // Crop the input image to the specified region before conversion
-    cv::UMat cropped_rgba_image = (*image_adjusted)(region);
+    cv::UMat cropped_rgb_image = (*image_adjusted)(region);
 
-    // Convert the cropped RGBA image to HSV
-    cv::UMat hsv_image = ImageUtils::RgbaToHsv(cropped_rgba_image);
+    // Convert the cropped RGB image to HSV
+    cv::UMat hsv_image = ImageUtils::RgbToHsv(cropped_rgb_image);
 
     // Split the HSV image into separate channels
     std::vector<cv::UMat> hsv_channels;
@@ -121,11 +121,11 @@ bool LayerHueSaturationValue::Process(const cv::Rect& region) {
     // Merge the adjusted HSV channels back into the final HSV image
     cv::merge(hsv_channels, hsv_image);
 
-    // Convert the HSV image back to RGBA
-    cv::UMat rgba_image = ImageUtils::HsvToRgba(hsv_image);
+    // Convert the HSV image back to RGB
+    cv::UMat rgb_image = ImageUtils::HsvToRgb(hsv_image);
 
     // Copy the processed image back to the original image
-    rgba_image.copyTo((*image_adjusted)(region));
+    rgb_image.copyTo((*image_adjusted)(region));
 
     values_have_changed = false;
     return true;
