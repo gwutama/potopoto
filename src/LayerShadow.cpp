@@ -26,15 +26,18 @@ bool LayerShadow::Process(const cv::Rect& region) {
         return false; // No adjustment needed
     }
 
-    // Convert RGBA image to LAB (Luminance, A, B) to adjust shadow regions
-    cv::UMat lab_image = ImageUtils::RgbaToLab(*image_adjusted);
+    // Crop the input image to the specified region before conversion
+    cv::UMat cropped_rgba_image = (*image_adjusted)(region);
+
+    // Convert the cropped RGBA image to LAB (Luminance, A, B) to adjust shadow regions
+    cv::UMat lab_image = ImageUtils::RgbaToLab(cropped_rgba_image);
 
     // Split the LAB image into separate channels
     std::vector<cv::UMat> lab_channels;
     cv::split(lab_image, lab_channels);
 
     // Extract the region of interest from the L (Luminance) channel
-    cv::UMat luminance_roi = lab_channels[0](region);
+    cv::UMat luminance_roi = lab_channels[0]; // Luminance (Lightness) channel
 
     // Use a basic threshold to create the shadow mask
     cv::UMat shadow_mask;
@@ -61,9 +64,11 @@ bool LayerShadow::Process(const cv::Rect& region) {
     // Merge the channels back into the LAB image
     cv::merge(lab_channels, lab_image);
 
+    // Convert the LAB image back to RGBA
     cv::UMat rgba_image = ImageUtils::LabToRgba(lab_image);
 
-    rgba_image(region).copyTo((*image_adjusted)(region));
+    // Copy the processed region back to the original adjusted image
+    rgba_image.copyTo((*image_adjusted)(region));
 
     values_have_changed = false;
     return true;

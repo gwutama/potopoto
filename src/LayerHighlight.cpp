@@ -26,15 +26,18 @@ bool LayerHighlight::Process(const cv::Rect& region) {
         return false; // No adjustment needed
     }
 
-    // Convert RGBA image to LAB (Luminance, A, B) to adjust highlight regions
-    cv::UMat lab_image = ImageUtils::RgbaToLab(*image_adjusted);
+    // Crop the input image to the specified region before conversion
+    cv::UMat cropped_rgba_image = (*image_adjusted)(region);
+
+    // Convert the cropped RGBA image to LAB (Luminance, A, B) to adjust highlight regions
+    cv::UMat lab_image = ImageUtils::RgbaToLab(cropped_rgba_image);
 
     // Split the LAB image into separate channels
     std::vector<cv::UMat> lab_channels;
     cv::split(lab_image, lab_channels);
 
     // Extract the region of interest from the L (Luminance) channel
-    cv::UMat luminance_roi = lab_channels[0](region); // Luminance (Lightness) channel
+    cv::UMat luminance_roi = lab_channels[0];
 
     // Use a basic threshold to create the highlight mask (focus on brighter regions)
     cv::UMat highlight_mask;
@@ -65,7 +68,7 @@ bool LayerHighlight::Process(const cv::Rect& region) {
     cv::UMat rgba_image = ImageUtils::LabToRgba(lab_image);
 
     // Copy the processed region back to the original adjusted image
-    rgba_image(region).copyTo((*image_adjusted)(region));
+    rgba_image.copyTo((*image_adjusted)(region));
 
     values_have_changed = false;
     return true;

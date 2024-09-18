@@ -27,15 +27,18 @@ bool LayerLightness::Process(const cv::Rect& region) {
         return false; // No adjustment needed
     }
 
-    // Convert RGBA image to HLS (Hue, Lightness, Saturation)
-    cv::UMat hls_image = ImageUtils::RgbaToHls(*image_adjusted);
+    // Crop the input image to the specified region before conversion
+    cv::UMat cropped_rgba_image = (*image_adjusted)(region);
+
+    // Convert the cropped RGBA image to HLS (Hue, Lightness, Saturation)
+    cv::UMat hls_image = ImageUtils::RgbaToHls(cropped_rgba_image);
 
     // Split the HLS image into separate channels
     std::vector<cv::UMat> hls_channels;
     cv::split(hls_image, hls_channels);
 
     // Extract the region of interest from the Lightness (L) channel
-    cv::UMat lightness_roi = hls_channels[1](region); // Lightness channel is at index 1
+    cv::UMat& lightness_roi = hls_channels[1]; // Lightness channel is at index 1
 
     // Adjust the lightness
     cv::add(lightness_roi, lightness, lightness_roi);
@@ -48,7 +51,7 @@ bool LayerLightness::Process(const cv::Rect& region) {
     cv::UMat rgba_image = ImageUtils::HlsToRgba(hls_image);
 
     // Copy the processed region back to the original adjusted image
-    rgba_image(region).copyTo((*image_adjusted)(region));
+    rgba_image.copyTo((*image_adjusted)(region));
 
     values_have_changed = false;
     return true;

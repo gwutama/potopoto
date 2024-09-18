@@ -48,20 +48,23 @@ void LayerHueSaturationValue::SetValue(float in_value) {
 bool LayerHueSaturationValue::Process(const cv::Rect& region) {
     // Input image is RGBA - Output image is RGBA
     if (hue == DEFAULT_HUE && saturation == DEFAULT_SATURATION && value == DEFAULT_VALUE) {
-        return false;
+        return false; // No adjustment needed
     }
 
-    // Convert RGBA image to HSV
-    cv::UMat hsv_image = ImageUtils::RgbaToHsv(*image_adjusted);
+    // Crop the input image to the specified region before conversion
+    cv::UMat cropped_rgba_image = (*image_adjusted)(region);
+
+    // Convert the cropped RGBA image to HSV
+    cv::UMat hsv_image = ImageUtils::RgbaToHsv(cropped_rgba_image);
 
     // Split the HSV image into separate channels
     std::vector<cv::UMat> hsv_channels;
     cv::split(hsv_image, hsv_channels);
 
     // Extract the region of interest from each HSV channel
-    cv::UMat hsv_roi_0 = hsv_channels[0](region);
-    cv::UMat hsv_roi_1 = hsv_channels[1](region);
-    cv::UMat hsv_roi_2 = hsv_channels[2](region);
+    cv::UMat& hsv_roi_0 = hsv_channels[0]; // Hue channel
+    cv::UMat& hsv_roi_1 = hsv_channels[1]; // Saturation channel
+    cv::UMat& hsv_roi_2 = hsv_channels[2]; // Value channel
 
     // Convert channels to float if high precision adjustment is needed
     if (high_precision) {
@@ -83,21 +86,21 @@ bool LayerHueSaturationValue::Process(const cv::Rect& region) {
         {
             if (hue != DEFAULT_HUE) {
                 cv::add(hsv_roi_0, hue, hsv_roi_0); // Adjust hue
-                cv::min(hsv_roi_0, 180, hsv_roi_0); // Clamp hue
+                cv::min(hsv_roi_0, 180, hsv_roi_0); // Clamp hue to [0, 180]
             }
         }
 #pragma omp section
         {
             if (saturation != DEFAULT_SATURATION) {
                 cv::add(hsv_roi_1, saturation, hsv_roi_1); // Adjust saturation
-                cv::min(hsv_roi_1, 255, hsv_roi_1); // Clamp saturation
+                cv::min(hsv_roi_1, 255, hsv_roi_1); // Clamp saturation to [0, 255]
             }
         }
 #pragma omp section
         {
             if (value != DEFAULT_VALUE) {
                 cv::add(hsv_roi_2, value, hsv_roi_2); // Adjust value
-                cv::min(hsv_roi_2, 255, hsv_roi_2); // Clamp value
+                cv::min(hsv_roi_2, 255, hsv_roi_2); // Clamp value to [0, 255]
             }
         }
     }
@@ -115,19 +118,14 @@ bool LayerHueSaturationValue::Process(const cv::Rect& region) {
         }
     }
 
-    // Update the original HSV image with the processed ROI
-    hsv_channels[0](region) = hsv_roi_0;
-    hsv_channels[1](region) = hsv_roi_1;
-    hsv_channels[2](region) = hsv_roi_2;
-
-    // Merge the channels back into the final HSV image
+    // Merge the adjusted HSV channels back into the final HSV image
     cv::merge(hsv_channels, hsv_image);
 
     // Convert the HSV image back to RGBA
-    cv::UMat new_image = ImageUtils::HsvToRgba(hsv_image);
+    cv::UMat rgba_image = ImageUtils::HsvToRgba(hsv_image);
 
-    // Copy the processed image back to image_adjusted
-    new_image.copyTo(*image_adjusted);
+    // Copy the processed image back to the original image
+    rgba_image.copyTo((*image_adjusted)(region));
 
     values_have_changed = false;
     return true;
