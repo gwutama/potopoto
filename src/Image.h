@@ -19,6 +19,7 @@
 #include "LayerWhiteBalance.h"
 #include "LayerGamma.h"
 #include "LayerShadow.h"
+#include "LayerHighlight.h"
 #include "LayerCmyk.h"
 
 
@@ -60,6 +61,7 @@ protected:
     std::shared_ptr<LayerWhiteBalance> white_balance_adjustments_layer;
     std::shared_ptr<LayerGamma> gamma_adjustments_layer;
     std::shared_ptr<LayerShadow> shadow_adjustments_layer;
+    std::shared_ptr<LayerHighlight> highlight_adjustments_layer;
     std::shared_ptr<LayerCmyk> cmyk_adjustments_layer;
 
     // adjustment timestamp

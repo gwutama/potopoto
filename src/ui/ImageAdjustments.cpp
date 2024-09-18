@@ -21,6 +21,7 @@ void ImageAdjustments::Render() {
     float gamma = adjustments_parameters.GetGamma();
 
     float shadow = adjustments_parameters.GetShadow();
+    float highlight = adjustments_parameters.GetHighlight();
 
     float cyan = adjustments_parameters.GetCyan();
     float magenta = adjustments_parameters.GetMagenta();
@@ -121,6 +122,17 @@ void ImageAdjustments::Render() {
     if (ImGui::SliderFloat("Shadow", &shadow, -50.0f, 50.0f, "%.2f")) {
         if (shadow != adjustments_parameters.GetShadow()) {
             adjustments_parameters.SetShadow(shadow);
+            changed = true;
+        }
+    }
+
+    if (ImGui::IsItemDeactivatedAfterEdit()) {
+        mouse_released();
+    }
+
+    if (ImGui::SliderFloat("Highlight", &highlight, -50.0f, 50.0f, "%.2f")) {
+        if (highlight != adjustments_parameters.GetHighlight()) {
+            adjustments_parameters.SetHighlight(highlight);
             changed = true;
         }
     }

@@ -13,6 +13,7 @@ Image::Image(const std::shared_ptr<cv::UMat>& in_image) {
     white_balance_adjustments_layer = std::make_shared<LayerWhiteBalance>();
     gamma_adjustments_layer = std::make_shared<LayerGamma>();
     shadow_adjustments_layer = std::make_shared<LayerShadow>();
+    highlight_adjustments_layer = std::make_shared<LayerHighlight>();
     cmyk_adjustments_layer = std::make_shared<LayerCmyk>();
 
     UpdateImageInfo();
@@ -45,6 +46,7 @@ void Image::AdjustParameters(const AdjustmentsParameters &parameters_in) {
     gamma_adjustments_layer->SetGamma(parameters_in.GetGamma());
 
     shadow_adjustments_layer->SetShadow(parameters_in.GetShadow());
+    highlight_adjustments_layer->SetHighlight(parameters_in.GetHighlight());
 
     cmyk_adjustments_layer->SetCyan(parameters_in.GetCyan());
     cmyk_adjustments_layer->SetMagenta(parameters_in.GetMagenta());
@@ -93,6 +95,9 @@ bool Image::ApplyAdjustmentsRegion(const cv::Point& top_left, const cv::Point& b
 
     shadow_adjustments_layer->SetImage(adjusted_image);
     image_changed = shadow_adjustments_layer->ApplyRegion(top_left, bottom_right) || image_changed;
+
+    highlight_adjustments_layer->SetImage(adjusted_image);
+    image_changed = highlight_adjustments_layer->ApplyRegion(top_left, bottom_right) || image_changed;
 
     cmyk_adjustments_layer->SetImage(adjusted_image);
     image_changed = cmyk_adjustments_layer->ApplyRegion(top_left, bottom_right) || image_changed;

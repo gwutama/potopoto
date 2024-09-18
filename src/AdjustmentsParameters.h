@@ -7,6 +7,7 @@
 #include "LayerWhiteBalance.h"
 #include "LayerGamma.h"
 #include "LayerShadow.h"
+#include "LayerHighlight.h"
 #include "LayerCmyk.h"
 
 
@@ -30,6 +31,7 @@ public:
         gamma = LayerGamma::DEFAULT_GAMMA;
 
         shadow = LayerShadow::DEFAULT_SHADOW;
+        highlight = LayerHighlight::DEFAULT_HIGHLIGHT;
 
         cyan = LayerCmyk::DEFAULT_CYAN;
         magenta = LayerCmyk::DEFAULT_MAGENTA;
@@ -47,6 +49,7 @@ public:
                white_balance_saturation_threshold == other.white_balance_saturation_threshold &&
                gamma == other.gamma &&
                shadow == other.shadow &&
+               highlight == other.highlight &&
                cyan == other.cyan &&
                magenta == other.magenta &&
                yellow == other.yellow &&
@@ -80,6 +83,9 @@ public:
     float GetShadow() const { return shadow; }
     void SetShadow(float value) { shadow = value; }
 
+    float GetHighlight() const { return highlight; }
+    void SetHighlight(float value) { highlight = value; }
+
     float GetCyan() const { return cyan; }
     void SetCyan(float value) { cyan = value; }
 
@@ -107,6 +113,7 @@ private:
     float gamma;
 
     float shadow;
+    float highlight;
 
     float cyan;
     float magenta;

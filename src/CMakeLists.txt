@@ -61,6 +61,7 @@ set(SRC_FILES
         LayerBrightnessContrast.cpp
         LayerCmyk.cpp
         LayerGamma.cpp
+        LayerHighlight.cpp
         LayerHueSaturationValue.cpp
         LayerLightness.cpp
         LayerShadow.cpp
