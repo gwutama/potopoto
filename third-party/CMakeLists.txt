@@ -40,6 +40,8 @@ target_include_directories(tinyfiledialogs PUBLIC tinyfiledialogs)
 # OpenCV
 set(OpenCV_DIR ${CMAKE_SOURCE_DIR}/third-party/opencv)
 set(OPENCV_EXTRA_MODULES_PATH "${CMAKE_SOURCE_DIR}/third-party/opencv_contrib/modules" CACHE STRING "" FORCE)
+set(WITH_OPENMP ON CACHE BOOL "" FORCE)
+set(WITH_OPENCL ON CACHE BOOL "" FORCE)
 set(WITH_OBSENSOR OFF CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(BUILD_DOCS OFF CACHE BOOL "" FORCE)

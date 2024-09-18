@@ -23,6 +23,12 @@ int main(int argc, char* argv[]) {
         std::cout << "OpenMP is not available." << std::endl;
     }
 
+    if (cv::useOptimized()) {
+        std::cout << "OpenCV is using optimized code paths." << std::endl;
+    } else {
+        std::cout << "OpenCV is not using optimized code paths." << std::endl;
+    }
+
     // Initialize window and OpenGL context
     if (!InitializeWindow()) {
         return -1;
