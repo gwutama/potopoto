@@ -20,7 +20,7 @@ void LayerHighlight::SetHighlight(float in_highlight) {
 }
 
 
-bool LayerHighlight::Process(const cv::Point &top_left, const cv::Point &bottom_right) {
+bool LayerHighlight::Process(const cv::Rect& region) {
     // Input image is RGBA - Output image is RGBA
     if (highlight == DEFAULT_HIGHLIGHT) {
         return false; // No adjustment needed
@@ -33,16 +33,8 @@ bool LayerHighlight::Process(const cv::Point &top_left, const cv::Point &bottom_
     std::vector<cv::UMat> lab_channels;
     cv::split(lab_image, lab_channels);
 
-    // Define region of interest (ROI) based on top-left and bottom-right coordinates
-    int x_start = std::clamp(top_left.x, 0, image_adjusted->cols);
-    int y_start = std::clamp(top_left.y, 0, image_adjusted->rows);
-    int x_end = std::clamp(bottom_right.x, 0, image_adjusted->cols);
-    int y_end = std::clamp(bottom_right.y, 0, image_adjusted->rows);
-
-    cv::Rect region_of_interest(x_start, y_start, x_end - x_start, y_end - y_start);
-
     // Extract the region of interest from the L (Luminance) channel
-    cv::UMat luminance_roi = lab_channels[0](region_of_interest); // Luminance (Lightness) channel
+    cv::UMat luminance_roi = lab_channels[0](region); // Luminance (Lightness) channel
 
     // Use a basic threshold to create the highlight mask (focus on brighter regions)
     cv::UMat highlight_mask;
@@ -73,7 +65,7 @@ bool LayerHighlight::Process(const cv::Point &top_left, const cv::Point &bottom_
     cv::UMat rgba_image = ImageUtils::LabToRgba(lab_image);
 
     // Copy the processed region back to the original adjusted image
-    rgba_image(region_of_interest).copyTo((*image_adjusted)(region_of_interest));
+    rgba_image(region).copyTo((*image_adjusted)(region));
 
     values_have_changed = false;
     return true;

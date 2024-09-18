@@ -19,22 +19,14 @@ void LayerWhiteBalance::SetSaturationThreshold(float in_saturation_threshold) {
 }
 
 
-bool LayerWhiteBalance::Process(const cv::Point& top_left, const cv::Point& bottom_right) {
+bool LayerWhiteBalance::Process(const cv::Rect& region) {
     // Input image is RGBA - Output image is RGBA
     if (saturation_threshold == DEFAULT_SATURATION_THRESHOLD) {
         return false;
     }
 
-    // Define the region of interest (ROI)
-    int x_start = std::clamp(top_left.x, 0, image_adjusted->cols);
-    int y_start = std::clamp(top_left.y, 0, image_adjusted->rows);
-    int x_end = std::clamp(bottom_right.x, 0, image_adjusted->cols);
-    int y_end = std::clamp(bottom_right.y, 0, image_adjusted->rows);
-
-    cv::Rect region_of_interest(x_start, y_start, x_end - x_start, y_end - y_start);
-
     // Crop the input image to the ROI (RGBA format)
-    cv::UMat cropped_rgba_image = (*image_adjusted)(region_of_interest);
+    cv::UMat cropped_rgba_image = (*image_adjusted)(region);
 
     // Convert RGBA image to RGB since the white balance algorithm works on RGB
     cv::UMat cropped_rgb_image;
@@ -49,7 +41,7 @@ bool LayerWhiteBalance::Process(const cv::Point& top_left, const cv::Point& bott
     cv::cvtColor(balanced_rgb_image, balanced_rgba_image, cv::COLOR_RGB2RGBA);
 
     // Replace the adjusted region with the white-balanced result
-    balanced_rgba_image.copyTo((*image_adjusted)(region_of_interest));
+    balanced_rgba_image.copyTo((*image_adjusted)(region));
 
     values_have_changed = false;
     return true;

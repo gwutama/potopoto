@@ -119,8 +119,12 @@ void ImageEditor::OnImageAdjustmentsParametersChanged(const AdjustmentsParameter
             // Improve performance by only applying adjustments to the visible region
             auto region = canvas.GetViewableRegion();
             image_preview->AdjustParameters(parameters);
-            image_preview->ApplyAdjustmentsForPreviewRegion(UiUtils::ImVec2ToCvPoint(region.first),
-                                                            UiUtils::ImVec2ToCvPoint(region.second));
+
+            cv::Point top_left = UiUtils::ImVec2ToCvPoint(region.first);
+            cv::Point bottom_right = UiUtils::ImVec2ToCvPoint(region.second);
+            cv::Rect region_cv(top_left, bottom_right);
+
+            image_preview->ApplyAdjustmentsForPreviewRegion(region_cv);
             canvas.UpdateTexture(); // Update the texture with the adjusted image
         }
 #pragma omp section

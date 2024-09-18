@@ -45,7 +45,7 @@ void LayerHueSaturationValue::SetValue(float in_value) {
 }
 
 
-bool LayerHueSaturationValue::Process(const cv::Point& top_left, const cv::Point& bottom_right) {
+bool LayerHueSaturationValue::Process(const cv::Rect& region) {
     // Input image is RGBA - Output image is RGBA
     if (hue == DEFAULT_HUE && saturation == DEFAULT_SATURATION && value == DEFAULT_VALUE) {
         return false;
@@ -58,18 +58,10 @@ bool LayerHueSaturationValue::Process(const cv::Point& top_left, const cv::Point
     std::vector<cv::UMat> hsv_channels;
     cv::split(hsv_image, hsv_channels);
 
-    // Define region of interest (ROI) based on top-left and bottom-right coordinates
-    int x_start = std::clamp(top_left.x, 0, image_adjusted->cols);
-    int y_start = std::clamp(top_left.y, 0, image_adjusted->rows);
-    int x_end = std::clamp(bottom_right.x, 0, image_adjusted->cols);
-    int y_end = std::clamp(bottom_right.y, 0, image_adjusted->rows);
-
-    cv::Rect region_of_interest(x_start, y_start, x_end - x_start, y_end - y_start);
-
     // Extract the region of interest from each HSV channel
-    cv::UMat hsv_roi_0 = hsv_channels[0](region_of_interest);
-    cv::UMat hsv_roi_1 = hsv_channels[1](region_of_interest);
-    cv::UMat hsv_roi_2 = hsv_channels[2](region_of_interest);
+    cv::UMat hsv_roi_0 = hsv_channels[0](region);
+    cv::UMat hsv_roi_1 = hsv_channels[1](region);
+    cv::UMat hsv_roi_2 = hsv_channels[2](region);
 
     // Convert channels to float if high precision adjustment is needed
     if (high_precision) {
@@ -124,9 +116,9 @@ bool LayerHueSaturationValue::Process(const cv::Point& top_left, const cv::Point
     }
 
     // Update the original HSV image with the processed ROI
-    hsv_channels[0](region_of_interest) = hsv_roi_0;
-    hsv_channels[1](region_of_interest) = hsv_roi_1;
-    hsv_channels[2](region_of_interest) = hsv_roi_2;
+    hsv_channels[0](region) = hsv_roi_0;
+    hsv_channels[1](region) = hsv_roi_1;
+    hsv_channels[2](region) = hsv_roi_2;
 
     // Merge the channels back into the final HSV image
     cv::merge(hsv_channels, hsv_image);

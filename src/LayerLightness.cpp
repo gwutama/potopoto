@@ -21,7 +21,7 @@ void LayerLightness::SetLightness(float in_lightness) {
 }
 
 
-bool LayerLightness::Process(const cv::Point &top_left, const cv::Point &bottom_right) {
+bool LayerLightness::Process(const cv::Rect& region) {
     // Input image is RGBA - Output image is RGBA
     if (lightness == DEFAULT_LIGHTNESS) {
         return false; // No adjustment needed
@@ -34,16 +34,8 @@ bool LayerLightness::Process(const cv::Point &top_left, const cv::Point &bottom_
     std::vector<cv::UMat> hls_channels;
     cv::split(hls_image, hls_channels);
 
-    // Define region of interest (ROI) based on top-left and bottom-right coordinates
-    int x_start = std::clamp(top_left.x, 0, image_adjusted->cols);
-    int y_start = std::clamp(top_left.y, 0, image_adjusted->rows);
-    int x_end = std::clamp(bottom_right.x, 0, image_adjusted->cols);
-    int y_end = std::clamp(bottom_right.y, 0, image_adjusted->rows);
-
-    cv::Rect region_of_interest(x_start, y_start, x_end - x_start, y_end - y_start);
-
     // Extract the region of interest from the Lightness (L) channel
-    cv::UMat lightness_roi = hls_channels[1](region_of_interest); // Lightness channel is at index 1
+    cv::UMat lightness_roi = hls_channels[1](region); // Lightness channel is at index 1
 
     // Adjust the lightness
     cv::add(lightness_roi, lightness, lightness_roi);
@@ -56,7 +48,7 @@ bool LayerLightness::Process(const cv::Point &top_left, const cv::Point &bottom_
     cv::UMat rgba_image = ImageUtils::HlsToRgba(hls_image);
 
     // Copy the processed region back to the original adjusted image
-    rgba_image(region_of_interest).copyTo((*image_adjusted)(region_of_interest));
+    rgba_image(region).copyTo((*image_adjusted)(region));
 
     values_have_changed = false;
     return true;

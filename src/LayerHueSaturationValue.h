@@ -4,6 +4,7 @@
 #include <opencv2/opencv.hpp>
 #include "LayerBase.h"
 
+
 class LayerHueSaturationValue : public LayerBase {
 public:
     LayerHueSaturationValue();
@@ -22,7 +23,7 @@ public:
 
 protected:
     std::string GetName() override { return "HueSaturationValue"; }
-    bool Process(const cv::Point& top_left, const cv::Point& bottom_right) override;
+    bool Process(const cv::Rect& region) override;
 
 private:
     float hue;

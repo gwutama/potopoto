@@ -13,23 +13,23 @@ public:
     virtual std::shared_ptr<cv::UMat> GetAdjustedImage() { return image_adjusted; }
 
     virtual bool Apply() {
-        return ApplyRegion(cv::Point(0, 0), cv::Point(image_adjusted->cols, image_adjusted->rows));
+        return ApplyRegion(cv::Rect(0, 0, image_adjusted->cols, image_adjusted->rows));
     }
 
-    virtual bool ApplyRegion(const cv::Point& top_left, const cv::Point& bottom_right) {
+    virtual bool ApplyRegion(const cv::Rect& region) {
         if (image_adjusted == nullptr || image_adjusted->empty()) {
-            std::cerr << "Layer " << GetName() << " has no image to process." << std::endl;
+            std::cerr << "Layer " << GetName() << " : No image to process." << std::endl;
             return false;
         }
 
-        return Process(top_left, bottom_right);
+        return Process(region);
     }
 
     virtual bool ParametersHaveChanged() = 0;
 
 protected:
     virtual std::string GetName() = 0;
-    virtual bool Process(const cv::Point& top_left, const cv::Point& bottom_right) = 0;
+    virtual bool Process(const cv::Rect& region) = 0;
 
 protected:
     std::shared_ptr<cv::UMat> image_adjusted;

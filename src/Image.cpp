@@ -59,13 +59,14 @@ void Image::AdjustParameters(const AdjustmentsParameters &parameters_in) {
 
 
 bool Image::ApplyAdjustments() {
-    return ApplyAdjustmentsRegion(cv::Point(0, 0), cv::Point(original_image->cols, original_image->rows));
+    return ApplyAdjustmentsRegion(cv::Rect(0, 0, adjusted_image->cols, adjusted_image->rows));
 }
 
 
-bool Image::ApplyAdjustmentsRegion(const cv::Point& top_left, const cv::Point& bottom_right) {
-    // Test whether the region is valid
-    if (top_left.x < 0 || top_left.y < 0 || bottom_right.x > original_image->cols || bottom_right.y > original_image->rows) {
+bool Image::ApplyAdjustmentsRegion(const cv::Rect& region) {
+    // Check if the region is within the image bounds
+    if (region.x < 0 || region.y < 0 || region.x + region.width > original_image->cols || region.y + region.height > original_image->rows) {
+        std::cerr << "Image: Region is outside the image bounds." << std::endl;
         return false;
     }
 
@@ -79,28 +80,28 @@ bool Image::ApplyAdjustmentsRegion(const cv::Point& top_left, const cv::Point& b
     adjusted_image = std::make_shared<cv::UMat>(original_image->clone());
 
     brightness_contrast_adjustments_layer->SetImage(adjusted_image);
-    image_changed = brightness_contrast_adjustments_layer->ApplyRegion(top_left, bottom_right) || image_changed;
+    image_changed = brightness_contrast_adjustments_layer->ApplyRegion(region) || image_changed;
 
     hsv_adjustments_layer->SetImage(adjusted_image);
-    image_changed = hsv_adjustments_layer->ApplyRegion(top_left, bottom_right) || image_changed;
+    image_changed = hsv_adjustments_layer->ApplyRegion(region) || image_changed;
 
     lightness_adjustments_layer->SetImage(adjusted_image);
-    image_changed = lightness_adjustments_layer->ApplyRegion(top_left, bottom_right) || image_changed;
+    image_changed = lightness_adjustments_layer->ApplyRegion(region) || image_changed;
 
     white_balance_adjustments_layer->SetImage(adjusted_image);
-    image_changed = white_balance_adjustments_layer->ApplyRegion(top_left, bottom_right) || image_changed;
+    image_changed = white_balance_adjustments_layer->ApplyRegion(region) || image_changed;
 
     gamma_adjustments_layer->SetImage(adjusted_image);
-    image_changed = gamma_adjustments_layer->ApplyRegion(top_left, bottom_right) || image_changed;
+    image_changed = gamma_adjustments_layer->ApplyRegion(region) || image_changed;
 
     shadow_adjustments_layer->SetImage(adjusted_image);
-    image_changed = shadow_adjustments_layer->ApplyRegion(top_left, bottom_right) || image_changed;
+    image_changed = shadow_adjustments_layer->ApplyRegion(region) || image_changed;
 
     highlight_adjustments_layer->SetImage(adjusted_image);
-    image_changed = highlight_adjustments_layer->ApplyRegion(top_left, bottom_right) || image_changed;
+    image_changed = highlight_adjustments_layer->ApplyRegion(region) || image_changed;
 
     cmyk_adjustments_layer->SetImage(adjusted_image);
-    image_changed = cmyk_adjustments_layer->ApplyRegion(top_left, bottom_right) || image_changed;
+    image_changed = cmyk_adjustments_layer->ApplyRegion(region) || image_changed;
 
     parameters_changed = false;
 

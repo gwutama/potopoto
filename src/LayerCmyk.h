@@ -23,7 +23,7 @@ public:
 
 private:
     std::string GetName() override { return "Cmyk"; }
-    bool Process(const cv::Point& top_left, const cv::Point& bottom_right) override;
+    bool Process(const cv::Rect& region) override;
 
 private:
     float cyan;

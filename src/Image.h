@@ -36,7 +36,7 @@ public:
     void AdjustParameters(const AdjustmentsParameters& parameters_in);
 
     virtual bool ApplyAdjustments();
-    virtual bool ApplyAdjustmentsRegion(const cv::Point& top_left, const cv::Point& bottom_right);
+    virtual bool ApplyAdjustmentsRegion(const cv::Rect& region);
 
     std::shared_ptr<cv::UMat> GetAdjustedImage() const { return adjusted_image; }
 

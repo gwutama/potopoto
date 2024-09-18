@@ -4,6 +4,7 @@
 #include <opencv2/opencv.hpp>
 #include "LayerBase.h"
 
+
 class LayerWhiteBalance : public LayerBase {
 public:
     LayerWhiteBalance();
@@ -17,7 +18,7 @@ public:
 
 private:
     std::string GetName() override { return "WhiteBalance"; }
-    bool Process(const cv::Point& top_left, const cv::Point& bottom_right) override;
+    bool Process(const cv::Rect& region) override;
 
     void GrayworldWhiteBalance(cv::UMat& src, cv::UMat& dst, float threshold);
     void GpuWhiteBalance(cv::UMat& src, cv::UMat& dst, float threshold);

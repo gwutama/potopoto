@@ -4,6 +4,7 @@
 #include <opencv2/opencv.hpp>
 #include "LayerBase.h"
 
+
 class LayerGamma : public LayerBase {
 public:
     LayerGamma();
@@ -17,7 +18,7 @@ public:
 
 protected:
     std::string GetName() override { return "Gamma"; }
-    bool Process(const cv::Point& top_left, const cv::Point& bottom_right) override;
+    bool Process(const cv::Rect& region) override;
 
 private:
     float gamma;

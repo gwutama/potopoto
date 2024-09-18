@@ -140,12 +140,12 @@ void ImagePreview::AdjustParameters(const AdjustmentsParameters& parameters_in) 
 }
 
 
-bool ImagePreview::ApplyAdjustmentsForPreviewRegion(const cv::Point& top_left, const cv::Point& bottom_right) {
+bool ImagePreview::ApplyAdjustmentsForPreviewRegion(const cv::Rect& region) {
     if (partial_lod_image == nullptr || current_lod_level == LodLevel::UNDEFINED) {
         return false;
     }
 
-    return partial_lod_image->ApplyAdjustmentsRegion(top_left, bottom_right);
+    return partial_lod_image->ApplyAdjustmentsRegion(region);
 }
 
 

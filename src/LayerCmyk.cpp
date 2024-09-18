@@ -57,21 +57,14 @@ void LayerCmyk::SetBlack(float in_black) {
 }
 
 
-bool LayerCmyk::Process(const cv::Point& top_left, const cv::Point& bottom_right) {
+bool LayerCmyk::Process(const cv::Rect& region) {
     // Input image is RGBA - Output image is RGBA
     if (cyan == DEFAULT_CYAN && magenta == DEFAULT_MAGENTA && yellow == DEFAULT_YELLOW && black == DEFAULT_BLACK) {
         return false;
     }
 
-    // Calculate ROI coordinates
-    int x_start = std::clamp(top_left.x, 0, image_adjusted->cols);
-    int y_start = std::clamp(top_left.y, 0, image_adjusted->rows);
-    int width = std::clamp(bottom_right.x, 0, image_adjusted->cols) - x_start;
-    int height = std::clamp(bottom_right.y, 0, image_adjusted->rows) - y_start;
-    cv::Rect region_of_interest(x_start, y_start, width, height);
-
     // Crop the input RGBA image to the specified ROI
-    cv::UMat cropped_rgba_image = ImageUtils::CropImage(*image_adjusted, region_of_interest);
+    cv::UMat cropped_rgba_image = ImageUtils::CropImage(*image_adjusted, region);
 
     // Convert the cropped RGBA image to CMYK
     cv::UMat cmyk_image = ImageUtils::RgbaToCmyk(cropped_rgba_image);
@@ -116,7 +109,7 @@ bool LayerCmyk::Process(const cv::Point& top_left, const cv::Point& bottom_right
     cv::UMat adjusted_rgba_image = ImageUtils::CmykToRgba(cmyk_image);
 
     // Copy the adjusted image back to the original image
-    adjusted_rgba_image.copyTo((*image_adjusted)(region_of_interest));
+    adjusted_rgba_image.copyTo((*image_adjusted)(region));
 
     return true;
 }
