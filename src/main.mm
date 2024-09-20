@@ -1,21 +1,22 @@
-#include <wx/wx.h>
 #include <opencv2/opencv.hpp>
+#include <wx/wx.h>
+#include <wx/notebook.h>
+
 #include "ui/ImageEditor2.h"
+#include "ui/ImageAnalysisPanel.h"
+#include "ui/ImageAdjustmentsPanel.h"
+
 #include "ImagePreview2.h"
 #include "ImageReader.h"
 #include "Image.h"
 
-// This will include the necessary Objective-C headers
 #ifdef __WXMAC__
-
 #import <AppKit/AppKit.h>
-
 #endif
 
 class MyApp : public wxApp {
 public:
     virtual bool OnInit();
-
     void ForceDarkMode();
 };
 
@@ -24,13 +25,17 @@ public:
     MyFrame(const wxString &title);
 
 private:
-    ImageEditor2 *editor;
     std::shared_ptr<ImagePreview2> imagePreview;
+
+    ImageEditor2 *editor;
+    wxPanel *rightPanel;
+    ImageAnalysisPanel *imageAnalysisPanel;
+    ImageAdjustmentsPanel *imageAdjustmentsPanel;
 
     void OnOpen(wxCommandEvent &event);
     void OnClose(wxCommandEvent &event);
-
     void CreateMenuBar();
+    void CreateRightPanel();
 };
 
 wxIMPLEMENT_APP(MyApp);
@@ -39,7 +44,7 @@ bool MyApp::OnInit() {
     // Force dark mode on macOS
     ForceDarkMode();
 
-    MyFrame *frame = new MyFrame("Image Viewer");
+    MyFrame *frame = new MyFrame("potopoto");
     frame->Show(true);
     frame->Maximize(true);  // Maximize the window on start
     return true;
@@ -47,28 +52,44 @@ bool MyApp::OnInit() {
 
 void MyApp::ForceDarkMode() {
 #ifdef __WXMAC__
-    // Use Objective-C API to force dark mode on macOS
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"NSRequiresAquaSystemAppearance"];
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"AppleInterfaceStyleSwitchesAutomatically"];
     [[NSUserDefaults standardUserDefaults] setObject:@"Dark" forKey:@"AppleInterfaceStyle"];
-
-    // Force the appearance update
     NSApp.appearance = [NSAppearance appearanceNamed:NSAppearanceNameDarkAqua];
 #endif
 }
 
 MyFrame::MyFrame(const wxString &title)
         : wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(800, 600)) {
+
     imagePreview = std::make_shared<ImagePreview2>();
-    editor = new ImageEditor2(this, imagePreview);
+    editor = new ImageEditor2(static_cast<wxWindow*>(this), imagePreview);
     editor->Disable();  // Disable the editor until an image is loaded
 
-    // Create the menu bar
     CreateMenuBar();
+    CreateRightPanel();
 
-    // Set dark background and foreground colors
-    SetBackgroundColour(wxColour(40, 40, 40));
-    SetForegroundColour(wxColour(255, 255, 255));
+    // Set up the layout using sizers
+    wxBoxSizer *mainSizer = new wxBoxSizer(wxHORIZONTAL);
+
+    mainSizer->Add(editor, 1, wxEXPAND | wxALL, 5);
+    mainSizer->Add(rightPanel, 0, wxEXPAND | wxALL, 5);
+
+    SetSizer(mainSizer);
+}
+
+void MyFrame::CreateRightPanel() {
+    rightPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(400, -1));
+
+    imageAnalysisPanel = new ImageAnalysisPanel(rightPanel);
+    imageAdjustmentsPanel = new ImageAdjustmentsPanel(rightPanel);
+
+    wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(imageAnalysisPanel, 0, wxEXPAND | wxALL, 5);
+    sizer->Add(imageAdjustmentsPanel, 1, wxEXPAND | wxALL, 5);
+
+    rightPanel->SetSizer(sizer);
+    rightPanel->Layout();  // Make sure the sizer gets applied
 }
 
 void MyFrame::OnOpen(wxCommandEvent &event) {
@@ -77,9 +98,8 @@ void MyFrame::OnOpen(wxCommandEvent &event) {
                                 wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
     if (openFileDialog.ShowModal() == wxID_CANCEL)
-        return;  // User canceled the dialog
+        return;
 
-    // Load the image using OpenCV
     wxString filePath = openFileDialog.GetPath();
     std::string filename = filePath.ToStdString();
 
@@ -90,15 +110,13 @@ void MyFrame::OnOpen(wxCommandEvent &event) {
         return;
     }
 
-    // Load the image into the editor
     auto image = std::make_shared<Image>(myImage);
     editor->LoadImage(image);
-
-    editor->Enable();  // Enable the editor after loading the image
+    editor->Enable();
 }
 
 void MyFrame::OnClose(wxCommandEvent &event) {
-    editor->Disable();  // Disable the editor
+    editor->Disable();
     editor->Reset();
 }
 
@@ -112,9 +130,8 @@ void MyFrame::CreateMenuBar() {
 
     Bind(wxEVT_MENU, &MyFrame::OnOpen, this, wxID_OPEN);
     Bind(wxEVT_MENU, &MyFrame::OnClose, this, wxID_CLOSE);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&){ Close(true); }, wxID_EXIT);
+    Bind(wxEVT_MENU, [this](wxCommandEvent &) { Close(true); }, wxID_EXIT);
 
     menuBar->Append(fileMenu, "&File");
     SetMenuBar(menuBar);
 }
-

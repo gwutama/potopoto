@@ -62,6 +62,9 @@ set(SRC_FILES
 
         ui/ImageCanvas.cpp
         ui/ImageEditor2.cpp
+        ui/ImageAnalysisPanel.cpp
+        ui/ImageAdjustmentsPanel.cpp
+        ui/LayerAdjustmentsPanel.cpp
         main.mm
         ImagePreview2.cpp
 
