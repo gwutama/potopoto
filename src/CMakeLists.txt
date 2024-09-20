@@ -36,25 +36,41 @@ else()
     find_package(Iconv REQUIRED)
 endif()
 
+# Enable wxWidgets static linking
+set(wxWidgets_USE_STATIC 1)
+
+# Find wxWidgets, including the OpenGL (gl) component
+find_package(wxWidgets REQUIRED COMPONENTS core base gl)
+
+if(wxWidgets_USE_FILE) # not defined in CONFIG mode
+    include(${wxWidgets_USE_FILE})
+endif()
+
 # Define the source files
 set(SRC_FILES
-        ui/Canvas.cpp
-        ui/Enums.h
-        ui/ExifMetadata.cpp
-        ui/FileInfo.cpp
-        ui/Histogram.cpp
-        ui/ImageAdjustments.cpp
-        ui/ImageEditor.cpp
-        ui/ImageInfo.cpp
-        ui/Menubar.cpp
-        ui/Toolbar.cpp
-        ui/UiUtils.cpp
+#        ui/Canvas.cpp
+#        ui/Enums.h
+#        ui/ExifMetadata.cpp
+#        ui/FileInfo.cpp
+#        ui/Histogram.cpp
+#        ui/ImageAdjustments.cpp
+#        ui/ImageEditor.cpp
+#        ui/ImageInfo.cpp
+#        ui/Menubar.cpp
+#        ui/Toolbar.cpp
+#        ui/UiUtils.cpp
+
+        ui/ImageCanvas.cpp
+        ui/ImageEditor2.cpp
+        main.mm
+        ImagePreview2.cpp
+
         AdjustmentsParameters.h
         BackgroundTask.h
         Image.cpp
-        ImagePreview.cpp
         ImageApplyAdjustmentsTask.cpp
         ImageHistogram.cpp
+#        ImagePreview.cpp
         ImageReader.cpp
         ImageUtils.cpp
         LayerBase.h
@@ -66,14 +82,14 @@ set(SRC_FILES
         LayerLightness.cpp
         LayerShadow.cpp
         LayerWhiteBalance.cpp
-        main.cpp
+#        main.cpp
         MetadataReader.cpp
-        WindowManager.cpp
+#        WindowManager.cpp
 )
 
 # Include directories
-include_directories(${CMAKE_SOURCE_DIR}/third-party/tinyfiledialogs-code)
-include_directories(${CMAKE_SOURCE_DIR}/third-party/implot)
+#include_directories(${CMAKE_SOURCE_DIR}/third-party/tinyfiledialogs-code)
+#include_directories(${CMAKE_SOURCE_DIR}/third-party/implot)
 
 include_directories(${CMAKE_BINARY_DIR}) # for generated opencv_modules.hpp
 include_directories(${CMAKE_SOURCE_DIR}/third-party/opencv/include)
@@ -97,12 +113,16 @@ include_directories(${CMAKE_SOURCE_DIR}/third-party/exiv2/include)
 
 include_directories(${CMAKE_SOURCE_DIR}/third-party/sigslot/include)
 
+include_directories(${wxWidgets_INCLUDE_DIRS})
+
 # Add executable
-add_executable(potopoto ${SRC_FILES})
+add_executable(${PROJECT_NAME} ${SRC_FILES})
 
 # Link libraries
-target_link_libraries(potopoto PRIVATE
-        SDL2::SDL2 ${OPENGL_LIBRARIES} OpenGL::GLU
-        imgui tinyfiledialogs opencv_core opencv_imgproc opencv_imgcodecs opencv_xphoto
-        Exiv2::exiv2lib ${ICONV_LIBRARY} ${OpenMP_omp_LIBRARY}
+target_link_libraries(${PROJECT_NAME} PRIVATE
+#        SDL2::SDL2 ${OPENGL_LIBRARIES} OpenGL::GLU
+        OpenGL::GL
+#        imgui tinyfiledialogs
+        opencv_core opencv_imgproc opencv_imgcodecs opencv_xphoto
+        Exiv2::exiv2lib ${ICONV_LIBRARY} ${OpenMP_omp_LIBRARY} ${wxWidgets_LIBRARIES}
 )
