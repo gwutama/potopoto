@@ -20,6 +20,8 @@ enum class TaskStatus {
 template<typename ResultType>
 class BackgroundTask {
 public:
+    using TaskCallback = std::function<void(TaskStatus)>;
+
     // Constructor to set the timeout
     BackgroundTask(std::chrono::milliseconds timeout_duration = std::chrono::milliseconds::max())
             : is_running(false), is_cancelled(false), timeout(timeout_duration) {}
@@ -28,13 +30,14 @@ public:
         Stop();
     }
 
-    // Start the background task
-    bool Run() {
+    // Start the background task with an optional callback
+    bool Run(TaskCallback callback = nullptr) {
         std::lock_guard<std::mutex> lock(mutex_);
         if (!is_running) {
             is_running = true;
             is_cancelled = false;
             error_code = TaskStatus::SUCCESS;
+            on_complete = callback;  // Store the callback
             try {
                 task_thread = std::thread(&BackgroundTask::ExecuteTask, this);
             } catch (...) {
@@ -123,7 +126,14 @@ protected:
             is_running = false;
         }
         cv.notify_all();
+
+        // Invoke the callback, if provided
+        if (on_complete) {
+            on_complete(error_code);
+        }
     }
+
+    TaskCallback on_complete;  // Store the callback
 
 protected:
     mutable std::mutex mutex_;

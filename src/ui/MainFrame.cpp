@@ -88,19 +88,35 @@ void MainFrame::OnClose(wxCommandEvent &event) {
 
 void MainFrame::OnAdjustmentSliderValueChanged(wxCommandEvent &event) {
     auto adjustments = static_cast<AdjustmentsParameters *>(event.GetClientData());
-    editor->GetImagePreview()->AdjustParameters(*adjustments);
 
+    // Update visible region of the image
+    editor->GetImagePreview()->AdjustParameters(*adjustments);
     cv::Rect visibleRegion = editor->GetImageCanvas()->GetVisibleImageRegion();
     editor->GetImagePreview()->ApplyAdjustmentsForPreviewRegion(visibleRegion);
     editor->GetImageCanvas()->UpdateTexture();
     editor->GetImageCanvas()->Refresh();
+
+    // Update histogram
+    imageHistogram->AdjustParameters(*adjustments);
+    imageHistogram->ApplyAdjustments();
+    imageAnalysisPanel->GetHistogramCanvas()->SetHistogramData(imageHistogram->GetHistogram());
+    imageAnalysisPanel->GetImageInfoPanel()->SetData(image->GetImageInfo());
 }
 
 
 void MainFrame::OnAdjustmentSliderMouseReleasedValueChanged(wxCommandEvent &event) {
-    auto adjustments = static_cast<AdjustmentsParameters *>(event.GetClientData());
-    editor->GetImagePreview()->AdjustParameters(*adjustments);
-    editor->GetImagePreview()->ApplyAdjustmentsForAllLodsAsync();
+    auto onSuccess = [this]() {
+        std::cout << "All LOD adjustments have been successfully applied!" << std::endl;
+
+        // Ensure UpdateTexture is called on the main thread
+        this->CallAfter([this]() {
+            editor->GetImageCanvas()->UpdateTexture();  // Update the texture after all adjustments are done
+            editor->GetImageCanvas()->Refresh();        // Trigger a canvas refresh to see the changes
+        });
+    };
+
+    // Update all LODs in the background
+    editor->GetImagePreview()->ApplyAdjustmentsForAllLodsAsync(onSuccess);  // Apply async adjustments
 }
 
 

@@ -101,12 +101,13 @@ void ImageCanvas::FitImageToCanvas() {
 void ImageCanvas::UpdateLodLevel() {
     ImagePreview2::LodLevel newLodLevel;
 
-    if (zoomFactor <= 0.5f)
+    if (zoomFactor <= 0.5f) {
         newLodLevel = ImagePreview2::LodLevel::LOW;
-    else if (zoomFactor <= 1.5f)
+    } else if (zoomFactor <= 1.5f) {
         newLodLevel = ImagePreview2::LodLevel::MEDIUM;
-    else
+    } else {
         newLodLevel = ImagePreview2::LodLevel::HIGH;
+    }
 
     if (newLodLevel != currentLodLevel) {
         currentLodLevel = newLodLevel;
@@ -203,9 +204,12 @@ void ImageCanvas::OnMouseUp(wxMouseEvent &event) {
 void ImageCanvas::OnMouseMove(wxMouseEvent &event) {
     if (isDragging) {
         wxPoint currentPos = event.GetPosition();
+
+        // Calculate delta (difference) in mouse position
         int deltaX = currentPos.x - dragStartPos.x;
         int deltaY = currentPos.y - dragStartPos.y;
 
+        // Update offsets based on mouse movement and apply zoom factor
         offsetX = lastOffsetX + deltaX;
         offsetY = lastOffsetY + deltaY;
 
@@ -217,28 +221,32 @@ void ImageCanvas::OnMouseMove(wxMouseEvent &event) {
 void ImageCanvas::OnGestureZoom(wxZoomGestureEvent &evt) {
     wxPoint mousePos = ScreenToClient(wxGetMousePosition());
 
+    // Mouse position in the image coordinate system before zoom
     float mouseImageX = (mousePos.x - offsetX) / zoomFactor;
     float mouseImageY = (mousePos.y - offsetY) / zoomFactor;
 
+    // Update the zoom factor
     float zoomDelta = evt.GetZoomFactor();
     zoomFactor = std::clamp(zoomFactor * (1 + (zoomDelta - 1) * 0.2f), MIN_ZOOM_FACTOR, MAX_ZOOM_FACTOR);
 
-    UpdateLodLevel();  // Update the LOD level after zooming
+    UpdateLodLevel();  // Update LOD based on new zoom factor
 
+    // Recalculate the offset so that the image stays centered around the mouse position
     offsetX = mousePos.x - mouseImageX * zoomFactor;
     offsetY = mousePos.y - mouseImageY * zoomFactor;
 
     if (zoomCallback) {
-        zoomCallback(zoomFactor);
+        zoomCallback(zoomFactor);  // Notify zoom change
     }
 
-    Refresh();
+    Refresh();  // Redraw canvas after zoom
 }
 
 
 void ImageCanvas::UpdateTexture() {
-    if (!imageLoaded)
+    if (!imageLoaded) {
         return;
+    }
 
     SetCurrent(*glContext);
 
@@ -252,9 +260,13 @@ void ImageCanvas::UpdateTexture() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    // Get the current LOD image from ImagePreview
-    auto img = imagePreview->GetImage();
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.cols, img.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, img.data);
+    // Lock the mutex before accessing the image
+    {
+        std::shared_lock<std::shared_mutex> lock(imagePreview->GetLodImageMutex());  // Use shared_lock for reading
+        auto img = imagePreview->GetImage();  // Safely get the image
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.cols, img.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, img.data);
+    }
+
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
@@ -264,26 +276,35 @@ cv::Rect ImageCanvas::GetVisibleImageRegion() {
         return cv::Rect();  // Return an empty rectangle if no image is loaded
     }
 
-    // Get the size of the visible canvas area
+    // Get the size of the visible canvas area (viewport size)
     wxSize clientSize = GetClientSize();
 
     // Get the size of the current LOD image
     auto lodSize = imagePreview->GetSize(currentLodLevel);
 
-    // Compute the top-left corner of the visible region in the image coordinate system
-    float imageXStart = (0 - offsetX) / zoomFactor;
-    float imageYStart = (0 - offsetY) / zoomFactor;
+    // Correct the offset values to account for zoom factor
+    // Offsets are negative when the image is scrolled to the left or top
+    float imageXStart = (-offsetX) / zoomFactor;
+    float imageYStart = (-offsetY) / zoomFactor;
 
-    // Compute the size of the visible region in image coordinates
+    // Calculate the size of the visible region in image coordinates
     float visibleWidth = clientSize.GetWidth() / zoomFactor;
     float visibleHeight = clientSize.GetHeight() / zoomFactor;
 
-    // Clamp the values to ensure they are within the image bounds
+    // Clamp the starting coordinates to ensure they are within the image bounds
     int x = std::clamp(static_cast<int>(imageXStart), 0, lodSize.width);
     int y = std::clamp(static_cast<int>(imageYStart), 0, lodSize.height);
+
+    // Adjust the width and height to ensure the visible region fits within the image bounds
     int width = std::clamp(static_cast<int>(visibleWidth), 0, lodSize.width - x);
     int height = std::clamp(static_cast<int>(visibleHeight), 0, lodSize.height - y);
 
-    // Return the visible region as a rectangle
+    // Log debug information for diagnostics
+    std::cout << "Viewport: " << clientSize.GetWidth() << "x" << clientSize.GetHeight()
+              << ", Zoom: " << zoomFactor << ", Offset: (" << offsetX << ", " << offsetY << ")"
+              << ", Image size: " << lodSize.width << "x" << lodSize.height
+              << ", Visible region: (" << x << ", " << y << ", " << width << ", " << height << ")"
+              << std::endl;
+
     return cv::Rect(x, y, width, height);
 }

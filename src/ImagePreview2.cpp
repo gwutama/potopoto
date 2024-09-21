@@ -28,12 +28,13 @@ void ImagePreview2::Reset() {
     lod_sizes.clear();
     parameters.Reset();
     apply_adjustments_tasks.clear();
+    completedTasks = 0;
 }
 
 
 void ImagePreview2::GenerateLodImages(const std::shared_ptr<Image>& in_image) {
     lod_images.clear();
-    lod_images.clear();
+    lod_sizes.clear();
 
     std::shared_ptr<Image> lod_low = GenerateLodImage(in_image, LodLevel::LOW);
     lod_images.insert({LodLevel::LOW, lod_low});
@@ -46,6 +47,8 @@ void ImagePreview2::GenerateLodImages(const std::shared_ptr<Image>& in_image) {
     std::shared_ptr<Image> lod_high = GenerateLodImage(in_image, LodLevel::HIGH);
     lod_images.insert({LodLevel::HIGH, lod_high});
     lod_sizes.insert({LodLevel::HIGH, lod_high->GetAdjustedImage()->size()});
+
+    partial_lod_image = lod_images.at(current_lod_level)->Clone();
 }
 
 
@@ -113,28 +116,50 @@ bool ImagePreview2::ApplyAdjustmentsForPreviewRegion(const cv::Rect& region) {
 }
 
 
-void ImagePreview2::ApplyAdjustmentsForAllLodsAsync() {
-    // Stop and remove any existing tasks
+void ImagePreview2::ApplyAdjustmentsForAllLodsAsync(std::function<void()> successCallback) {
+    std::unique_lock<std::shared_mutex> lock(lodImageMutex);
+
     for (auto& task : apply_adjustments_tasks) {
         task.second->Stop();
     }
 
     apply_adjustments_tasks.clear();
 
-    auto lod_low_task = std::make_shared<ImageApplyAdjustmentsTask>(lod_images.at(LodLevel::LOW),
-                                                                    std::chrono::seconds (600));
+    completedTasks = 0;
+    const int totalTasks = 3;  // LOW, MEDIUM, HIGH
+
+    auto onTaskCompleted = [this, totalTasks, successCallback]() {
+        std::unique_lock<std::shared_mutex> lock(lodImageMutex);
+
+        completedTasks++;
+        if (completedTasks == totalTasks && successCallback) {
+            successCallback();
+        }
+    };
+
+    auto lod_low_task = std::make_shared<ImageApplyAdjustmentsTask>(lod_images.at(LodLevel::LOW), std::chrono::seconds(600));
     apply_adjustments_tasks.insert({LodLevel::LOW, lod_low_task});
-    lod_low_task->Run();
+    lod_low_task->Run([this, onTaskCompleted](TaskStatus status) {
+        if (status == TaskStatus::SUCCESS) {
+            onTaskCompleted();
+        }
+    });
 
-    auto lod_medium_task = std::make_shared<ImageApplyAdjustmentsTask>(lod_images.at(LodLevel::MEDIUM),
-                                                                       std::chrono::seconds (600));
+    auto lod_medium_task = std::make_shared<ImageApplyAdjustmentsTask>(lod_images.at(LodLevel::MEDIUM), std::chrono::seconds(600));
     apply_adjustments_tasks.insert({LodLevel::MEDIUM, lod_medium_task});
-    lod_medium_task->Run();
+    lod_medium_task->Run([this, onTaskCompleted](TaskStatus status) {
+        if (status == TaskStatus::SUCCESS) {
+            onTaskCompleted();
+        }
+    });
 
-    auto lod_high_task = std::make_shared<ImageApplyAdjustmentsTask>(lod_images.at(LodLevel::HIGH),
-                                                                     std::chrono::seconds (600));
+    auto lod_high_task = std::make_shared<ImageApplyAdjustmentsTask>(lod_images.at(LodLevel::HIGH), std::chrono::seconds(600));
     apply_adjustments_tasks.insert({LodLevel::HIGH, lod_high_task});
-    lod_high_task->Run();
+    lod_high_task->Run([this, onTaskCompleted](TaskStatus status) {
+        if (status == TaskStatus::SUCCESS) {
+            onTaskCompleted();
+        }
+    });
 }
 
 
@@ -145,33 +170,20 @@ void ImagePreview2::SetLodLevel(ImagePreview2::LodLevel lod_level) {
 
 
 cv::Mat ImagePreview2::GetImage() {
+    std::shared_lock<std::shared_mutex> lock(lodImageMutex);
+
     std::cout << "Getting image for LOD level " << static_cast<int>(current_lod_level) << std::endl;
 
-    // Check if a task exists for the current LOD level
-    auto task_iter = apply_adjustments_tasks.find(current_lod_level);
-    bool task_exists = (task_iter != apply_adjustments_tasks.end());
-
-    if (task_exists) {
-        auto task = task_iter->second;
-
-        if (task->IsRunning()) {
-            // Task is still running, return the partial image
-            return partial_lod_image->GetAdjustedImage()->getMat(cv::ACCESS_READ);
-        } else {
-            // Task is completed, reset and erase it. Return the full image of the current LOD level
-            task_iter->second.reset();
-            apply_adjustments_tasks.erase(task_iter);
-            return lod_images.at(current_lod_level)->GetAdjustedImage()->getMat(cv::ACCESS_READ);
-        }
+    auto lod_image = lod_images.at(current_lod_level);
+    if (lod_image->GetLastAdjustmentTime() >= partial_lod_image->GetLastAdjustmentTime()) {
+        std::cout << "Returning full LOD image." << std::endl;
+        return lod_image->GetAdjustedImage()->getMat(cv::ACCESS_READ);
+    } else if (partial_lod_image) {
+        std::cout << "Returning partial LOD image." << std::endl;
+        return partial_lod_image->GetAdjustedImage()->getMat(cv::ACCESS_READ);
     } else {
-        // task does not exist (anymore?). Which one was the last one? Return the latest image
-        auto lod_image = lod_images.at(current_lod_level);
-
-        if (lod_image->GetLastAdjustmentTime() > partial_lod_image->GetLastAdjustmentTime()) {
-            return lod_image->GetAdjustedImage()->getMat(cv::ACCESS_READ);
-        } else {
-            return partial_lod_image->GetAdjustedImage()->getMat(cv::ACCESS_READ);
-        }
+        std::cerr << "No image available!" << std::endl;
+        return cv::Mat();  // Return an empty image
     }
 }
 

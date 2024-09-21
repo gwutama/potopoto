@@ -52,6 +52,8 @@ protected:
     // Gesture event handlers for zooming and panning
     void OnGestureZoom(wxZoomGestureEvent& evt);
 
+    void OnLodUpdate(wxCommandEvent& event);
+
 private:
     void UpdateLodLevel();              // Update the LOD level based on zoom
 
