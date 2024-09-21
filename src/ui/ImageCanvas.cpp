@@ -87,9 +87,10 @@ void ImageCanvas::FitImageToCanvas() {
         return;
 
     wxSize clientSize = GetClientSize();
+    int paddingPx = 100;
     auto high_size = imagePreview->GetSize(ImagePreview2::LodLevel::HIGH);
-    float scaleX = static_cast<float>(clientSize.GetWidth()) / high_size.width;
-    float scaleY = static_cast<float>(clientSize.GetHeight()) / high_size.height;
+    float scaleX = static_cast<float>(clientSize.GetWidth()) / (high_size.width + paddingPx);
+    float scaleY = static_cast<float>(clientSize.GetHeight()) / (high_size.height + paddingPx);
     zoomFactor = std::min(scaleX, scaleY);
 
     UpdateLodLevel();  // Update the LOD level after fitting the image
