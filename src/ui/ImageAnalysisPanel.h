@@ -3,13 +3,19 @@
 
 #include <wx/wx.h>
 #include <wx/notebook.h>
+#include "HistogramCanvas.h"
 
 class ImageAnalysisPanel : public wxPanel {
 public:
     ImageAnalysisPanel(wxWindow* parent);
 
+    void Reset();
+
+    HistogramCanvas* GetHistogramCanvas() const { return histogramCanvas; }
+
 private:
     wxNotebook* imageAnalysisTabs;
+    HistogramCanvas* histogramCanvas;
 
     void CreateTabs();
 };

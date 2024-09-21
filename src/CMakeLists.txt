@@ -60,11 +60,13 @@ set(SRC_FILES
 #        ui/Toolbar.cpp
 #        ui/UiUtils.cpp
 
+        ui/HistogramCanvas.cpp
         ui/ImageCanvas.cpp
         ui/ImageEditor2.cpp
         ui/ImageAnalysisPanel.cpp
         ui/ImageAdjustmentsPanel.cpp
         ui/LayerAdjustmentsPanel.cpp
+        ui/MainFrame.cpp
         main.mm
         ImagePreview2.cpp
 
