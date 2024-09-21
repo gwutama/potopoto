@@ -11,7 +11,7 @@
 #include "AdjustmentsParameters.h"
 
 
-class ImagePreview2 {
+class ImagePreview {
 public:
     enum class LodLevel {
         LOW,
@@ -19,8 +19,8 @@ public:
         HIGH,
     };
 
-    ImagePreview2();
-    ~ImagePreview2();
+    ImagePreview();
+    ~ImagePreview();
 
     void LoadImage(const std::shared_ptr<Image>& in_image);
     void Reset();

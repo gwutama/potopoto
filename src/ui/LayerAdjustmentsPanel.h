@@ -5,6 +5,7 @@
 #include <map>
 #include "../AdjustmentsParameters.h"
 
+// TODO: Maybe use callbacks instead of events
 wxDECLARE_EVENT(EVT_ADJUSTMENT_SLIDER_VALUE_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ADJUSTMENT_SLIDER_MOUSE_RELEASED_VALUE_CHANGED, wxCommandEvent);
 

@@ -5,14 +5,14 @@
 #include <wx/glcanvas.h>
 #include <opencv2/opencv.hpp>
 
-#include "../ImagePreview2.h"
+#include "../ImagePreview.h"
 #include "../Image.h"
 
 
 class ImageCanvas : public wxGLCanvas
 {
 public:
-    ImageCanvas(wxWindow* parent, std::shared_ptr<ImagePreview2> imagePreview);
+    ImageCanvas(wxWindow* parent, std::shared_ptr<ImagePreview> imagePreview);
     ~ImageCanvas();
 
     void Reset();
@@ -52,12 +52,10 @@ protected:
     // Gesture event handlers for zooming and panning
     void OnGestureZoom(wxZoomGestureEvent& evt);
 
-    void OnLodUpdate(wxCommandEvent& event);
-
 private:
     void UpdateLodLevel();              // Update the LOD level based on zoom
 
-    std::shared_ptr<ImagePreview2> imagePreview;  // ImagePreview object
+    std::shared_ptr<ImagePreview> imagePreview;  // ImagePreview object
     bool imageLoaded;                   // Flag to check if an image is loaded
     GLuint textureId;                   // OpenGL texture ID
     wxGLContext* glContext;             // OpenGL context
@@ -73,7 +71,7 @@ private:
     static constexpr float MIN_ZOOM_FACTOR = 0.1f;  // Minimum zoom factor
     static constexpr float MAX_ZOOM_FACTOR = 4.0f;  // Maximum zoom factor
 
-    ImagePreview2::LodLevel currentLodLevel;   // Current LOD level
+    ImagePreview::LodLevel currentLodLevel;   // Current LOD level
 
     wxDECLARE_EVENT_TABLE();
 };

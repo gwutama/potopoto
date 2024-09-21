@@ -6,8 +6,8 @@
 
 #include "../Image.h"
 #include "../ImageHistogram.h"
-#include "../ImagePreview2.h"
-#include "ImageEditor2.h"
+#include "../ImagePreview.h"
+#include "ImageEditor.h"
 #include "ImageAnalysisPanel.h"
 #include "ImageAdjustmentsPanel.h"
 
@@ -26,8 +26,8 @@ private:
     void CreateRightPanel();
 
 private:
-    std::shared_ptr<ImagePreview2> imagePreview;
-    ImageEditor2 *editor;
+    std::shared_ptr<ImagePreview> imagePreview;
+    ImageEditor *editor;
     wxPanel *rightPanel;
     ImageAnalysisPanel *imageAnalysisPanel;
     ImageAdjustmentsPanel *imageAdjustmentsPanel;

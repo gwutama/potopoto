@@ -8,10 +8,10 @@ wxBEGIN_EVENT_TABLE(ImageCanvas, wxGLCanvas)
                 EVT_MOTION(ImageCanvas::OnMouseMove)
 wxEND_EVENT_TABLE()
 
-ImageCanvas::ImageCanvas(wxWindow *parent, std::shared_ptr<ImagePreview2> imagePreview)
+ImageCanvas::ImageCanvas(wxWindow *parent, std::shared_ptr<ImagePreview> imagePreview)
         : wxGLCanvas(parent, wxID_ANY, nullptr), imagePreview(imagePreview), zoomFactor(1.0f),
           offsetX(0.0f), offsetY(0.0f), imageLoaded(false), textureId(0), isDragging(false),
-          currentLodLevel(ImagePreview2::LodLevel::LOW) {
+          currentLodLevel(ImagePreview::LodLevel::LOW) {
     SetBackgroundStyle(wxBG_STYLE_PAINT);
     glContext = new wxGLContext(this);
 }
@@ -38,7 +38,7 @@ void ImageCanvas::Reset() {
     dragStartPos = wxPoint(0, 0);
     lastOffsetX = 0.0f;
     lastOffsetY = 0.0f;
-    currentLodLevel = ImagePreview2::LodLevel::LOW;
+    currentLodLevel = ImagePreview::LodLevel::LOW;
 
     if (textureId) {
         glDeleteTextures(1, &textureId);
@@ -53,7 +53,7 @@ void ImageCanvas::LoadImage(const std::shared_ptr<Image> &image) {
     imagePreview->LoadImage(image);  // Load the image into ImagePreview
 
     // Set the initial LOD level to LOW and get the image for display
-    imagePreview->SetLodLevel(ImagePreview2::LodLevel::LOW);
+    imagePreview->SetLodLevel(ImagePreview::LodLevel::LOW);
 
     imageLoaded = true;
     UpdateTexture();  // Update OpenGL texture based on the new image
@@ -71,7 +71,7 @@ void ImageCanvas::SetZoomLevel(float zoom) {
 
 void ImageCanvas::CenterImageOnCanvas() {
     wxSize clientSize = GetClientSize();
-    auto high_size = imagePreview->GetSize(ImagePreview2::LodLevel::HIGH);
+    auto high_size = imagePreview->GetSize(ImagePreview::LodLevel::HIGH);
     float scaledWidth = high_size.width * zoomFactor;
     float scaledHeight = high_size.height * zoomFactor;
 
@@ -88,7 +88,7 @@ void ImageCanvas::FitImageToCanvas() {
 
     wxSize clientSize = GetClientSize();
     int paddingPx = 100;
-    auto high_size = imagePreview->GetSize(ImagePreview2::LodLevel::HIGH);
+    auto high_size = imagePreview->GetSize(ImagePreview::LodLevel::HIGH);
     float scaleX = static_cast<float>(clientSize.GetWidth()) / (high_size.width + paddingPx);
     float scaleY = static_cast<float>(clientSize.GetHeight()) / (high_size.height + paddingPx);
     zoomFactor = std::min(scaleX, scaleY);
@@ -99,14 +99,14 @@ void ImageCanvas::FitImageToCanvas() {
 
 
 void ImageCanvas::UpdateLodLevel() {
-    ImagePreview2::LodLevel newLodLevel;
+    ImagePreview::LodLevel newLodLevel;
 
     if (zoomFactor <= 0.5f) {
-        newLodLevel = ImagePreview2::LodLevel::LOW;
+        newLodLevel = ImagePreview::LodLevel::LOW;
     } else if (zoomFactor <= 1.5f) {
-        newLodLevel = ImagePreview2::LodLevel::MEDIUM;
+        newLodLevel = ImagePreview::LodLevel::MEDIUM;
     } else {
-        newLodLevel = ImagePreview2::LodLevel::HIGH;
+        newLodLevel = ImagePreview::LodLevel::HIGH;
     }
 
     if (newLodLevel != currentLodLevel) {
@@ -163,7 +163,7 @@ void ImageCanvas::OnPaint(wxPaintEvent &evt) {
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, textureId);
 
-    auto high_size = imagePreview->GetSize(ImagePreview2::LodLevel::HIGH);
+    auto high_size = imagePreview->GetSize(ImagePreview::LodLevel::HIGH);
     glBegin(GL_QUADS);
     glTexCoord2f(0.0f, 0.0f); glVertex2f(0.0f, 0.0f);
     glTexCoord2f(1.0f, 0.0f); glVertex2f(high_size.width, 0.0f);
@@ -280,7 +280,7 @@ cv::Rect ImageCanvas::GetVisibleImageRegion() {
     wxSize clientSize = GetClientSize();
 
     // Get the size of the high LOD image
-    auto highLodSize = imagePreview->GetSize(ImagePreview2::LodLevel::HIGH);
+    auto highLodSize = imagePreview->GetSize(ImagePreview::LodLevel::HIGH);
 
     // Get the size of the currently displayed LOD image
     auto currentLodSize = imagePreview->GetSize(currentLodLevel);

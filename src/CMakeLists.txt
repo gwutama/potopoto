@@ -50,7 +50,7 @@ endif()
 set(SRC_FILES
         ui/HistogramCanvas.cpp
         ui/ImageCanvas.cpp
-        ui/ImageEditor2.cpp
+        ui/ImageEditor.cpp
         ui/ImageAnalysisPanel.cpp
         ui/ImageAdjustmentsPanel.cpp
         ui/TableDataPanel.cpp
@@ -62,7 +62,7 @@ set(SRC_FILES
         Image.cpp
         ImageApplyAdjustmentsTask.cpp
         ImageHistogram.cpp
-        ImagePreview2.cpp
+        ImagePreview.cpp
         ImageReader.cpp
         ImageUtils.cpp
         LayerBase.h

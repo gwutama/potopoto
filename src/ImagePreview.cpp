@@ -1,27 +1,27 @@
-#include "ImagePreview2.h"
+#include "ImagePreview.h"
 
 
-const int ImagePreview2::TARGET_LOD_LOW_PIXELS = 3000000;
-const int ImagePreview2::TARGET_LOD_MEDIUM_PIXELS = 6000000;
-const int ImagePreview2::TARGET_LOD_HIGH_PIXELS = 9000000;
+const int ImagePreview::TARGET_LOD_LOW_PIXELS = 3000000;
+const int ImagePreview::TARGET_LOD_MEDIUM_PIXELS = 6000000;
+const int ImagePreview::TARGET_LOD_HIGH_PIXELS = 9000000;
 
 
-ImagePreview2::ImagePreview2() {
+ImagePreview::ImagePreview() {
     Reset();
 }
 
 
-ImagePreview2::~ImagePreview2() {
+ImagePreview::~ImagePreview() {
 }
 
 
-void ImagePreview2::LoadImage(const std::shared_ptr<Image> &in_image) {
+void ImagePreview::LoadImage(const std::shared_ptr<Image> &in_image) {
     GenerateLodImages(in_image);
     SetLodLevel(LodLevel::LOW);
 }
 
 
-void ImagePreview2::Reset() {
+void ImagePreview::Reset() {
     lod_images.clear();
     partial_lod_image.reset();
     current_lod_level = LodLevel::LOW;
@@ -32,7 +32,7 @@ void ImagePreview2::Reset() {
 }
 
 
-void ImagePreview2::GenerateLodImages(const std::shared_ptr<Image>& in_image) {
+void ImagePreview::GenerateLodImages(const std::shared_ptr<Image>& in_image) {
     lod_images.clear();
     lod_sizes.clear();
 
@@ -52,7 +52,7 @@ void ImagePreview2::GenerateLodImages(const std::shared_ptr<Image>& in_image) {
 }
 
 
-std::shared_ptr<Image> ImagePreview2::GenerateLodImage(const std::shared_ptr<Image>& in_image, LodLevel lod_level) {
+std::shared_ptr<Image> ImagePreview::GenerateLodImage(const std::shared_ptr<Image>& in_image, LodLevel lod_level) {
     std::cout << "Generating LOD image for level " << static_cast<int>(lod_level) << std::endl;
     auto image_copy = in_image->Clone();
 
@@ -80,7 +80,7 @@ std::shared_ptr<Image> ImagePreview2::GenerateLodImage(const std::shared_ptr<Ima
 }
 
 
-std::shared_ptr<cv::UMat> ImagePreview2::ResizeImageLod(const std::shared_ptr<cv::UMat>& in_image, int target_px) {
+std::shared_ptr<cv::UMat> ImagePreview::ResizeImageLod(const std::shared_ptr<cv::UMat>& in_image, int target_px) {
     auto out_image = std::make_shared<cv::UMat>(in_image->clone());
 
     // Calculate the total number of pixels in the original image
@@ -102,7 +102,7 @@ std::shared_ptr<cv::UMat> ImagePreview2::ResizeImageLod(const std::shared_ptr<cv
 }
 
 
-void ImagePreview2::AdjustParameters(const AdjustmentsParameters& parameters_in) {
+void ImagePreview::AdjustParameters(const AdjustmentsParameters& parameters_in) {
     parameters = parameters_in;
     lod_images.at(LodLevel::LOW)->AdjustParameters(parameters);
     lod_images.at(LodLevel::MEDIUM)->AdjustParameters(parameters);
@@ -111,12 +111,12 @@ void ImagePreview2::AdjustParameters(const AdjustmentsParameters& parameters_in)
 }
 
 
-bool ImagePreview2::ApplyAdjustmentsForPreviewRegion(const cv::Rect& region) {
+bool ImagePreview::ApplyAdjustmentsForPreviewRegion(const cv::Rect& region) {
     return partial_lod_image->ApplyAdjustmentsRegion(region);
 }
 
 
-void ImagePreview2::ApplyAdjustmentsForAllLodsAsync(std::function<void()> successCallback) {
+void ImagePreview::ApplyAdjustmentsForAllLodsAsync(std::function<void()> successCallback) {
     std::unique_lock<std::shared_mutex> lock(lodImageMutex);
 
     for (auto& task : apply_adjustments_tasks) {
@@ -163,13 +163,13 @@ void ImagePreview2::ApplyAdjustmentsForAllLodsAsync(std::function<void()> succes
 }
 
 
-void ImagePreview2::SetLodLevel(ImagePreview2::LodLevel lod_level) {
+void ImagePreview::SetLodLevel(ImagePreview::LodLevel lod_level) {
     current_lod_level = lod_level;
     partial_lod_image = lod_images.at(lod_level)->Clone();
 }
 
 
-cv::Mat ImagePreview2::GetImage() {
+cv::Mat ImagePreview::GetImage() {
     std::shared_lock<std::shared_mutex> lock(lodImageMutex);
 
     std::cout << "Getting image for LOD level " << static_cast<int>(current_lod_level) << std::endl;
@@ -188,7 +188,7 @@ cv::Mat ImagePreview2::GetImage() {
 }
 
 
-void ImagePreview2::ResizeImageByWidth(const cv::UMat& inputImage, cv::UMat& outputImage, int newWidth) {
+void ImagePreview::ResizeImageByWidth(const cv::UMat& inputImage, cv::UMat& outputImage, int newWidth) {
     // Get the original dimensions
     int originalWidth = inputImage.cols;
     int originalHeight = inputImage.rows;

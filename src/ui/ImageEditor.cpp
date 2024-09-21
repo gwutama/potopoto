@@ -1,10 +1,10 @@
-#include "ImageEditor2.h"
+#include "ImageEditor.h"
 
-wxBEGIN_EVENT_TABLE(ImageEditor2, wxPanel)
-                EVT_COMBOBOX(wxID_ANY, ImageEditor2::OnZoomSelection)
+wxBEGIN_EVENT_TABLE(ImageEditor, wxPanel)
+                EVT_COMBOBOX(wxID_ANY, ImageEditor::OnZoomSelection)
 wxEND_EVENT_TABLE()
 
-ImageEditor2::ImageEditor2(wxWindow *parent, std::shared_ptr<ImagePreview2> imagePreview)
+ImageEditor::ImageEditor(wxWindow *parent, std::shared_ptr<ImagePreview> imagePreview)
         : wxPanel(parent), imagePreview(imagePreview) {
     // Create ImageCanvas for viewing images
     imageCanvas = new ImageCanvas(this, imagePreview);
@@ -44,20 +44,20 @@ ImageEditor2::ImageEditor2(wxWindow *parent, std::shared_ptr<ImagePreview2> imag
 }
 
 
-void ImageEditor2::LoadImage(std::shared_ptr<Image> image) {
+void ImageEditor::LoadImage(std::shared_ptr<Image> image) {
     Reset();
     imageCanvas->LoadImage(image);
 }
 
 
-void ImageEditor2::Reset() {
+void ImageEditor::Reset() {
     imageCanvas->Reset();
     zoomComboBox->SetSelection(0);  // Default to "Fit to screen" when a new image is loaded
     UpdateZoomLabel();
 }
 
 
-void ImageEditor2::OnZoomSelection(wxCommandEvent &event) {
+void ImageEditor::OnZoomSelection(wxCommandEvent &event) {
     wxString selectedZoom = zoomComboBox->GetStringSelection();
 
     if (selectedZoom == "Fit to screen") {
@@ -75,7 +75,7 @@ void ImageEditor2::OnZoomSelection(wxCommandEvent &event) {
 }
 
 
-void ImageEditor2::UpdateZoomComboBox(float zoomLevel) {
+void ImageEditor::UpdateZoomComboBox(float zoomLevel) {
     int zoomPercent = static_cast<int>(zoomLevel * 100);
     wxString zoomStr = wxString::Format("%d%%", zoomPercent);
 
@@ -89,7 +89,7 @@ void ImageEditor2::UpdateZoomComboBox(float zoomLevel) {
 }
 
 
-void ImageEditor2::UpdateZoomLabel() {
+void ImageEditor::UpdateZoomLabel() {
     // Update the zoom label to display the zoom level with "%"
     int zoomPercent = static_cast<int>(imageCanvas->GetZoomLevel() * 100);
     zoomLabel->SetLabel(wxString::Format("%d%%", zoomPercent));

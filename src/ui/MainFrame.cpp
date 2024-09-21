@@ -7,8 +7,8 @@
 MainFrame::MainFrame(const wxString &title)
         : wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(800, 600)) {
 
-    imagePreview = std::make_shared<ImagePreview2>();
-    editor = new ImageEditor2(static_cast<wxWindow *>(this), imagePreview);
+    imagePreview = std::make_shared<ImagePreview>();
+    editor = new ImageEditor(static_cast<wxWindow *>(this), imagePreview);
     editor->Disable();  // Disable the editor until an image is loaded
 
     CreateMenuBar();
