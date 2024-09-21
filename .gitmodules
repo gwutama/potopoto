@@ -1,24 +1,9 @@
-[submodule "third-party/imgui"]
-	path = third-party/imgui
-	url = https://github.com/ocornut/imgui.git
-[submodule "third-party/implot"]
-	path = third-party/implot
-	url = https://github.com/epezent/implot.git
-[submodule "third-party/SDL"]
-	path = third-party/SDL
-	url = https://github.com/libsdl-org/SDL.git
-[submodule "third-party/tinyfiledialogs-code"]
-	path = third-party/tinyfiledialogs-code
-	url = git://git.code.sf.net/p/tinyfiledialogs/code
 [submodule "third-party/opencv"]
 	path = third-party/opencv
 	url = https://github.com/opencv/opencv.git
 [submodule "third-party/exiv2"]
 	path = third-party/exiv2
 	url = https://github.com/Exiv2/exiv2.git
-[submodule "third-party/sigslot"]
-	path = third-party/sigslot
-	url = https://github.com/palacaze/sigslot.git
 [submodule "third-party/opencv_contrib"]
 	path = third-party/opencv_contrib
 	url = https://github.com/opencv/opencv_contrib.git

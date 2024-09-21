@@ -48,18 +48,6 @@ endif()
 
 # Define the source files
 set(SRC_FILES
-#        ui/Canvas.cpp
-#        ui/Enums.h
-#        ui/ExifMetadata.cpp
-#        ui/FileInfo.cpp
-#        ui/Histogram.cpp
-#        ui/ImageAdjustments.cpp
-#        ui/ImageEditor.cpp
-#        ui/ImageInfo.cpp
-#        ui/Menubar.cpp
-#        ui/Toolbar.cpp
-#        ui/UiUtils.cpp
-
         ui/HistogramCanvas.cpp
         ui/ImageCanvas.cpp
         ui/ImageEditor2.cpp
@@ -68,15 +56,13 @@ set(SRC_FILES
         ui/TableDataPanel.cpp
         ui/LayerAdjustmentsPanel.cpp
         ui/MainFrame.cpp
-        main.mm
-        ImagePreview2.cpp
 
         AdjustmentsParameters.h
         BackgroundTask.h
         Image.cpp
         ImageApplyAdjustmentsTask.cpp
         ImageHistogram.cpp
-#        ImagePreview.cpp
+        ImagePreview2.cpp
         ImageReader.cpp
         ImageUtils.cpp
         LayerBase.h
@@ -88,15 +74,11 @@ set(SRC_FILES
         LayerLightness.cpp
         LayerShadow.cpp
         LayerWhiteBalance.cpp
-#        main.cpp
+        main.mm
         MetadataReader.cpp
-#        WindowManager.cpp
 )
 
 # Include directories
-#include_directories(${CMAKE_SOURCE_DIR}/third-party/tinyfiledialogs-code)
-#include_directories(${CMAKE_SOURCE_DIR}/third-party/implot)
-
 include_directories(${CMAKE_BINARY_DIR}) # for generated opencv_modules.hpp
 include_directories(${CMAKE_SOURCE_DIR}/third-party/opencv/include)
 include_directories(${CMAKE_SOURCE_DIR}/third-party/opencv/modules/calib3d/include)
@@ -117,8 +99,6 @@ include_directories(${CMAKE_SOURCE_DIR}/third-party/opencv_contrib/modules/xphot
 
 include_directories(${CMAKE_SOURCE_DIR}/third-party/exiv2/include)
 
-include_directories(${CMAKE_SOURCE_DIR}/third-party/sigslot/include)
-
 include_directories(${wxWidgets_INCLUDE_DIRS})
 
 # Add executable
@@ -126,9 +106,6 @@ add_executable(${PROJECT_NAME} ${SRC_FILES})
 
 # Link libraries
 target_link_libraries(${PROJECT_NAME} PRIVATE
-#        SDL2::SDL2 ${OPENGL_LIBRARIES} OpenGL::GLU
-        OpenGL::GL
-#        imgui tinyfiledialogs
         opencv_core opencv_imgproc opencv_imgcodecs opencv_xphoto
-        Exiv2::exiv2lib ${ICONV_LIBRARY} ${OpenMP_omp_LIBRARY} ${wxWidgets_LIBRARIES}
+        OpenGL::GL Exiv2::exiv2lib ${ICONV_LIBRARY} ${OpenMP_omp_LIBRARY} ${wxWidgets_LIBRARIES}
 )
