@@ -64,16 +64,17 @@ bool Image::ApplyAdjustments() {
 
 
 bool Image::ApplyAdjustmentsRegion(const cv::Rect& region) {
-    // Check if the region is within the image bounds
-    if (region.x < 0 || region.y < 0 || region.x + region.width > original_image->cols || region.y + region.height > original_image->rows) {
-        std::cerr << "Image: Region is outside the image bounds." << std::endl;
-        return false;
-    }
-
     // No need to run the pipeline if the parameters have not changed
     if (!parameters_changed) {
         return false;
     }
+
+    // Clamp the region to the image bounds
+    cv::Rect regionClamped = region;
+    regionClamped.x = std::max(0, regionClamped.x);
+    regionClamped.y = std::max(0, regionClamped.y);
+    regionClamped.width = std::min(regionClamped.width, adjusted_image->cols - regionClamped.x);
+    regionClamped.height = std::min(regionClamped.height, adjusted_image->rows - regionClamped.y);
 
     bool image_changed = false;
 
@@ -84,28 +85,28 @@ bool Image::ApplyAdjustmentsRegion(const cv::Rect& region) {
     cv::cvtColor(*original_image, *rgb_image, cv::COLOR_BGRA2BGR);
 
     brightness_contrast_adjustments_layer->SetImage(rgb_image);
-    image_changed = brightness_contrast_adjustments_layer->ApplyRegion(region) || image_changed;
+    image_changed = brightness_contrast_adjustments_layer->ApplyRegion(regionClamped) || image_changed;
 
     hsv_adjustments_layer->SetImage(rgb_image);
-    image_changed = hsv_adjustments_layer->ApplyRegion(region) || image_changed;
+    image_changed = hsv_adjustments_layer->ApplyRegion(regionClamped) || image_changed;
 
     lightness_adjustments_layer->SetImage(rgb_image);
-    image_changed = lightness_adjustments_layer->ApplyRegion(region) || image_changed;
+    image_changed = lightness_adjustments_layer->ApplyRegion(regionClamped) || image_changed;
 
     white_balance_adjustments_layer->SetImage(rgb_image);
-    image_changed = white_balance_adjustments_layer->ApplyRegion(region) || image_changed;
+    image_changed = white_balance_adjustments_layer->ApplyRegion(regionClamped) || image_changed;
 
     gamma_adjustments_layer->SetImage(rgb_image);
-    image_changed = gamma_adjustments_layer->ApplyRegion(region) || image_changed;
+    image_changed = gamma_adjustments_layer->ApplyRegion(regionClamped) || image_changed;
 
     shadow_adjustments_layer->SetImage(rgb_image);
-    image_changed = shadow_adjustments_layer->ApplyRegion(region) || image_changed;
+    image_changed = shadow_adjustments_layer->ApplyRegion(regionClamped) || image_changed;
 
     highlight_adjustments_layer->SetImage(rgb_image);
-    image_changed = highlight_adjustments_layer->ApplyRegion(region) || image_changed;
+    image_changed = highlight_adjustments_layer->ApplyRegion(regionClamped) || image_changed;
 
     cmyk_adjustments_layer->SetImage(rgb_image);
-    image_changed = cmyk_adjustments_layer->ApplyRegion(region) || image_changed;
+    image_changed = cmyk_adjustments_layer->ApplyRegion(regionClamped) || image_changed;
 
     // Convert the image back to RGBA color space
     cv::cvtColor(*rgb_image, *adjusted_image, cv::COLOR_BGR2BGRA);
