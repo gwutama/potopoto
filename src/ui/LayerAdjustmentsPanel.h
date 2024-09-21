@@ -3,13 +3,23 @@
 
 #include <wx/wx.h>
 #include <map>
+#include "../AdjustmentsParameters.h"
+
+wxDECLARE_EVENT(EVT_ADJUSTMENT_SLIDER_VALUE_CHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_ADJUSTMENT_SLIDER_MOUSE_RELEASED_VALUE_CHANGED, wxCommandEvent);
 
 class LayerAdjustmentsPanel : public wxPanel
 {
 public:
     LayerAdjustmentsPanel(wxWindow* parent);
 
-    void Reset();  // Reset all sliders to default values
+    void Reset();
+
+private:
+    AdjustmentsParameters GetAdjustmentsParametersFromUiValues() const;
+
+    void OnSliderChanged(wxCommandEvent& event);
+    void OnSliderMouseReleased(wxMouseEvent& event);
 
 private:
     // Sliders and their associated value labels
@@ -45,7 +55,7 @@ private:
 
     std::map<wxSlider*, wxStaticText*> sliderToValueMap;  // Maps sliders to their value labels
 
-    void OnSliderChanged(wxCommandEvent& event);  // Event handler for when a slider changes
+    AdjustmentsParameters adjustments_parameters;
 
 wxDECLARE_EVENT_TABLE();
 };

@@ -36,6 +36,10 @@ public:
     // Enable or disable touch gestures
     void EnableGestures(bool enable);
 
+    cv::Rect GetVisibleImageRegion();
+
+    void UpdateTexture();               // Update OpenGL texture
+
 protected:
     void OnPaint(wxPaintEvent& evt);
     void OnResize(wxSizeEvent& evt);
@@ -49,7 +53,6 @@ protected:
     void OnGestureZoom(wxZoomGestureEvent& evt);
 
 private:
-    void UpdateTexture();               // Update OpenGL texture
     void UpdateLodLevel();              // Update the LOD level based on zoom
 
     std::shared_ptr<ImagePreview2> imagePreview;  // ImagePreview object

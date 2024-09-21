@@ -16,6 +16,8 @@ public:
     ImageEditor2(wxWindow* parent, std::shared_ptr<ImagePreview2> imagePreview);
     void LoadImage(std::shared_ptr<Image> image);
     void Reset();
+    std::shared_ptr<ImagePreview2> GetImagePreview() { return imagePreview; }
+    ImageCanvas* GetImageCanvas() { return imageCanvas; }
 
 private:
     ImageCanvas* imageCanvas;        // Image viewer canvas

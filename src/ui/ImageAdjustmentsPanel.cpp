@@ -1,5 +1,5 @@
 #include "ImageAdjustmentsPanel.h"
-#include "LayerAdjustmentsPanel.h"
+
 
 ImageAdjustmentsPanel::ImageAdjustmentsPanel(wxWindow* parent)
         : wxPanel(parent, wxID_ANY) {
@@ -14,6 +14,13 @@ ImageAdjustmentsPanel::ImageAdjustmentsPanel(wxWindow* parent)
     SetSizer(panelSizer);
 }
 
+
+void ImageAdjustmentsPanel::Reset() {
+    imageAdjustmentsTabs->SetSelection(0);
+    layerAdjustmentsPanel->Reset();
+}
+
+
 void ImageAdjustmentsPanel::CreateTabs() {
     imageAdjustmentsTabs = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxSize(400, 200), wxNB_TOP);
 
@@ -24,7 +31,7 @@ void ImageAdjustmentsPanel::CreateTabs() {
     imageAdjustmentsTabs->AddPage(globalTab, "Global");
 
     // Add the LayerAdjustmentsPanel within the global tab
-    LayerAdjustmentsPanel* layerAdjustmentsPanel = new LayerAdjustmentsPanel(globalTab);
+    layerAdjustmentsPanel = new LayerAdjustmentsPanel(globalTab);
 
     // Set the sizer for the global tab, minimizing padding
     wxBoxSizer* layerAdjustmentsSizer = new wxBoxSizer(wxVERTICAL);

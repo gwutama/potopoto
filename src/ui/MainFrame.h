@@ -19,6 +19,9 @@ public:
 private:
     void OnOpen(wxCommandEvent &event);
     void OnClose(wxCommandEvent &event);
+    void OnAdjustmentSliderValueChanged(wxCommandEvent &event);
+    void OnAdjustmentSliderMouseReleasedValueChanged(wxCommandEvent &event);
+
     void CreateMenuBar();
     void CreateRightPanel();
 

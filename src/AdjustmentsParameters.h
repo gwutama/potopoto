@@ -56,6 +56,10 @@ public:
                black == other.black;
     }
 
+    bool operator!=(const AdjustmentsParameters& other) const {
+        return !(*this == other);
+    }
+
     float GetBrightness() const { return brightness; }
     void SetBrightness(float value) { brightness = value; }
 

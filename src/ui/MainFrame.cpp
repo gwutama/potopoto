@@ -1,6 +1,7 @@
 #include "MainFrame.h"
 #include "../ImageReader.h"
 #include "../MetadataReader.h"
+#include "LayerAdjustmentsPanel.h"
 
 
 MainFrame::MainFrame(const wxString &title)
@@ -19,6 +20,9 @@ MainFrame::MainFrame(const wxString &title)
     mainSizer->Add(editor, 1, wxEXPAND | wxALL, 5);
     mainSizer->Add(rightPanel, 0, wxEXPAND | wxALL, 5);
     SetSizer(mainSizer);
+
+    Bind(EVT_ADJUSTMENT_SLIDER_VALUE_CHANGED, &MainFrame::OnAdjustmentSliderValueChanged, this);
+    Bind(EVT_ADJUSTMENT_SLIDER_MOUSE_RELEASED_VALUE_CHANGED, &MainFrame::OnAdjustmentSliderMouseReleasedValueChanged, this);
 }
 
 
@@ -78,6 +82,25 @@ void MainFrame::OnClose(wxCommandEvent &event) {
     rightPanel->Disable();
     editor->Reset();
     imageAnalysisPanel->Reset();
+    imageAdjustmentsPanel->Reset();
+}
+
+
+void MainFrame::OnAdjustmentSliderValueChanged(wxCommandEvent &event) {
+    auto adjustments = static_cast<AdjustmentsParameters *>(event.GetClientData());
+    editor->GetImagePreview()->AdjustParameters(*adjustments);
+
+    cv::Rect visibleRegion = editor->GetImageCanvas()->GetVisibleImageRegion();
+    editor->GetImagePreview()->ApplyAdjustmentsForPreviewRegion(visibleRegion);
+    editor->GetImageCanvas()->UpdateTexture();
+    editor->GetImageCanvas()->Refresh();
+}
+
+
+void MainFrame::OnAdjustmentSliderMouseReleasedValueChanged(wxCommandEvent &event) {
+    auto adjustments = static_cast<AdjustmentsParameters *>(event.GetClientData());
+    editor->GetImagePreview()->AdjustParameters(*adjustments);
+    editor->GetImagePreview()->ApplyAdjustmentsForAllLodsAsync();
 }
 
 

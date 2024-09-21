@@ -257,3 +257,33 @@ void ImageCanvas::UpdateTexture() {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.cols, img.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, img.data);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
+
+
+cv::Rect ImageCanvas::GetVisibleImageRegion() {
+    if (!imageLoaded) {
+        return cv::Rect();  // Return an empty rectangle if no image is loaded
+    }
+
+    // Get the size of the visible canvas area
+    wxSize clientSize = GetClientSize();
+
+    // Get the size of the current LOD image
+    auto lodSize = imagePreview->GetSize(currentLodLevel);
+
+    // Compute the top-left corner of the visible region in the image coordinate system
+    float imageXStart = (0 - offsetX) / zoomFactor;
+    float imageYStart = (0 - offsetY) / zoomFactor;
+
+    // Compute the size of the visible region in image coordinates
+    float visibleWidth = clientSize.GetWidth() / zoomFactor;
+    float visibleHeight = clientSize.GetHeight() / zoomFactor;
+
+    // Clamp the values to ensure they are within the image bounds
+    int x = std::clamp(static_cast<int>(imageXStart), 0, lodSize.width);
+    int y = std::clamp(static_cast<int>(imageYStart), 0, lodSize.height);
+    int width = std::clamp(static_cast<int>(visibleWidth), 0, lodSize.width - x);
+    int height = std::clamp(static_cast<int>(visibleHeight), 0, lodSize.height - y);
+
+    // Return the visible region as a rectangle
+    return cv::Rect(x, y, width, height);
+}
