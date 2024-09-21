@@ -279,31 +279,53 @@ cv::Rect ImageCanvas::GetVisibleImageRegion() {
     // Get the size of the visible canvas area (viewport size)
     wxSize clientSize = GetClientSize();
 
-    // Get the size of the current LOD image
-    auto lodSize = imagePreview->GetSize(currentLodLevel);
+    // Get the size of the high LOD image
+    auto highLodSize = imagePreview->GetSize(ImagePreview2::LodLevel::HIGH);
+
+    // Get the size of the currently displayed LOD image
+    auto currentLodSize = imagePreview->GetSize(currentLodLevel);
+
+    // Compute the scale factor between the high LOD size and the current LOD size
+    float scaleX = static_cast<float>(currentLodSize.width) / highLodSize.width;
+    float scaleY = static_cast<float>(currentLodSize.height) / highLodSize.height;
 
     // Correct the offset values to account for zoom factor
     // Offsets are negative when the image is scrolled to the left or top
     float imageXStart = (-offsetX) / zoomFactor;
     float imageYStart = (-offsetY) / zoomFactor;
 
-    // Calculate the size of the visible region in image coordinates
+    // Calculate the size of the visible region in image coordinates relative to the high LOD image
     float visibleWidth = clientSize.GetWidth() / zoomFactor;
     float visibleHeight = clientSize.GetHeight() / zoomFactor;
 
-    // Clamp the starting coordinates to ensure they are within the image bounds
-    int x = std::clamp(static_cast<int>(imageXStart), 0, lodSize.width);
-    int y = std::clamp(static_cast<int>(imageYStart), 0, lodSize.height);
+    // Clamp the starting coordinates to ensure they are within the high LOD image bounds
+    float highLodXStart = std::clamp(imageXStart, 0.0f, static_cast<float>(highLodSize.width));
+    float highLodYStart = std::clamp(imageYStart, 0.0f, static_cast<float>(highLodSize.height));
 
-    // Adjust the width and height to ensure the visible region fits within the image bounds
-    int width = std::clamp(static_cast<int>(visibleWidth), 0, lodSize.width - x);
-    int height = std::clamp(static_cast<int>(visibleHeight), 0, lodSize.height - y);
+    // Adjust the width and height to ensure the visible region fits within the high LOD image bounds
+    float highLodWidth = std::clamp(visibleWidth, 0.0f, static_cast<float>(highLodSize.width - highLodXStart));
+    float highLodHeight = std::clamp(visibleHeight, 0.0f, static_cast<float>(highLodSize.height - highLodYStart));
+
+    // Scale the high LOD coordinates and dimensions to the current LOD level using floating point arithmetic
+    float scaledX = highLodXStart * scaleX;
+    float scaledY = highLodYStart * scaleY;
+    float scaledWidth = highLodWidth * scaleX;
+    float scaledHeight = highLodHeight * scaleY;
+
+    // Final casting to integer right before returning the values
+    int x = static_cast<int>(std::floor(scaledX));
+    int y = static_cast<int>(std::floor(scaledY));
+    int width = static_cast<int>(std::ceil(scaledWidth)) + 5; // Add a small extra to ensure the region is fully covered
+    int height = static_cast<int>(std::ceil(scaledHeight)) + 5;
 
     // Log debug information for diagnostics
     std::cout << "Viewport: " << clientSize.GetWidth() << "x" << clientSize.GetHeight()
               << ", Zoom: " << zoomFactor << ", Offset: (" << offsetX << ", " << offsetY << ")"
-              << ", Image size: " << lodSize.width << "x" << lodSize.height
-              << ", Visible region: (" << x << ", " << y << ", " << width << ", " << height << ")"
+              << ", High LOD Image size: " << highLodSize.width << "x" << highLodSize.height
+              << ", Current LOD Image size: " << currentLodSize.width << "x" << currentLodSize.height
+              << ", Visible region in High LOD: (" << highLodXStart << ", " << highLodYStart << ", "
+              << highLodWidth << ", " << highLodHeight << ")"
+              << ", Visible region in Current LOD: (" << x << ", " << y << ", " << width << ", " << height << ")"
               << std::endl;
 
     return cv::Rect(x, y, width, height);
