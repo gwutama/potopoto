@@ -1,5 +1,6 @@
 #include "MainFrame.h"
 #include "../ImageReader.h"
+#include "../MetadataReader.h"
 
 
 MainFrame::MainFrame(const wxString &title)
@@ -60,6 +61,12 @@ void MainFrame::OnOpen(wxCommandEvent &event) {
 
     editor->LoadImage(image);
     imageAnalysisPanel->GetHistogramCanvas()->SetHistogramData(imageHistogram->GetHistogram());
+    imageAnalysisPanel->GetImageInfoPanel()->SetData(image->GetImageInfo());
+
+    MetadataReader metadataReader;
+    metadataReader.Load(filename);
+    imageAnalysisPanel->GetExifMetadataPanel()->SetData(metadataReader.GetExifMetadata());
+    imageAnalysisPanel->GetFileInfoPanel()->SetData(metadataReader.GetFileInfo());
 
     editor->Enable();
     rightPanel->Enable();

@@ -14,6 +14,10 @@ ImageAnalysisPanel::ImageAnalysisPanel(wxWindow* parent)
 
 void ImageAnalysisPanel::Reset() {
     histogramCanvas->Reset();
+    imageAnalysisTabs->SetSelection(0);
+    imageInfoPanel->SetData({});
+    exifMetadataPanel->SetData({});
+    fileInfoPanel->SetData({});
 }
 
 
@@ -33,31 +37,26 @@ void ImageAnalysisPanel::CreateTabs() {
 
     // Create the histogram canvas and make it fill the tab
     histogramCanvas = new HistogramCanvas(histogramTab);
-
-    // Set up a sizer for the histogramTab
     wxBoxSizer* histogramSizer = new wxBoxSizer(wxVERTICAL);
-
-    // Add the canvas to the sizer, using 1 for proportion and wxEXPAND to fill the space
     histogramSizer->Add(histogramCanvas, 1, wxEXPAND | wxALL, 0);
-
-    // Set the sizer for the tab
     histogramTab->SetSizer(histogramSizer);
 
     // Image tab content
-    wxStaticText* imageLabel = new wxStaticText(imageTab, wxID_ANY, "Image Info Content");
+    imageInfoPanel = new TableDataPanel(imageTab);
     wxBoxSizer* imageSizer = new wxBoxSizer(wxVERTICAL);
-    imageSizer->Add(imageLabel, 0, wxALIGN_CENTER | wxALL, 10);
+    imageSizer->Add(imageInfoPanel, 1, wxEXPAND | wxALL, 5); // Adjusted to expand
     imageTab->SetSizer(imageSizer);
 
     // EXIF tab content
-    wxStaticText* exifLabel = new wxStaticText(exifTab, wxID_ANY, "EXIF Metadata Content");
+    exifMetadataPanel = new TableDataPanel(exifTab);
     wxBoxSizer* exifSizer = new wxBoxSizer(wxVERTICAL);
-    exifSizer->Add(exifLabel, 0, wxALIGN_CENTER | wxALL, 10);
+    exifSizer->Add(exifMetadataPanel, 1, wxEXPAND | wxALL, 5);
     exifTab->SetSizer(exifSizer);
 
     // File tab content
-    wxStaticText* fileLabel = new wxStaticText(fileTab, wxID_ANY, "File Info Content");
+    fileInfoPanel = new TableDataPanel(fileTab);
     wxBoxSizer* fileSizer = new wxBoxSizer(wxVERTICAL);
-    fileSizer->Add(fileLabel, 0, wxALIGN_CENTER | wxALL, 10);
+    fileSizer->Add(fileInfoPanel, 1, wxEXPAND | wxALL, 5);
     fileTab->SetSizer(fileSizer);
 }
+

@@ -65,6 +65,7 @@ set(SRC_FILES
         ui/ImageEditor2.cpp
         ui/ImageAnalysisPanel.cpp
         ui/ImageAdjustmentsPanel.cpp
+        ui/TableDataPanel.cpp
         ui/LayerAdjustmentsPanel.cpp
         ui/MainFrame.cpp
         main.mm

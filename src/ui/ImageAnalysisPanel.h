@@ -4,6 +4,7 @@
 #include <wx/wx.h>
 #include <wx/notebook.h>
 #include "HistogramCanvas.h"
+#include "TableDataPanel.h"
 
 class ImageAnalysisPanel : public wxPanel {
 public:
@@ -12,10 +13,16 @@ public:
     void Reset();
 
     HistogramCanvas* GetHistogramCanvas() const { return histogramCanvas; }
+    TableDataPanel* GetImageInfoPanel() const { return imageInfoPanel; }
+    TableDataPanel* GetExifMetadataPanel() const { return exifMetadataPanel; }
+    TableDataPanel* GetFileInfoPanel() const { return fileInfoPanel; }
 
 private:
     wxNotebook* imageAnalysisTabs;
     HistogramCanvas* histogramCanvas;
+    TableDataPanel* imageInfoPanel;
+    TableDataPanel* exifMetadataPanel;
+    TableDataPanel* fileInfoPanel;
 
     void CreateTabs();
 };
