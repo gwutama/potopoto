@@ -1,7 +1,7 @@
 #include "ImagePreview.h"
 
 
-const int ImagePreview::TARGET_LOD_LOW_PIXELS = 3000000;
+const int ImagePreview::TARGET_LOD_LOW_PIXELS = 2000000;
 const int ImagePreview::TARGET_LOD_MEDIUM_PIXELS = 6000000;
 const int ImagePreview::TARGET_LOD_HIGH_PIXELS = 9000000;
 

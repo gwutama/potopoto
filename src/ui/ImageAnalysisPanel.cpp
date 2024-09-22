@@ -7,7 +7,7 @@ ImageAnalysisPanel::ImageAnalysisPanel(wxWindow* parent)
 
     // Set sizer for the panel to expand the tabs to the full size of this panel
     wxBoxSizer* panelSizer = new wxBoxSizer(wxVERTICAL);
-    panelSizer->Add(imageAnalysisTabs, 1, wxEXPAND | wxALL, 5);
+    panelSizer->Add(imageAnalysisTabs, 1, wxEXPAND | wxALL, 0);
     SetSizer(panelSizer);
 }
 
@@ -44,19 +44,19 @@ void ImageAnalysisPanel::CreateTabs() {
     // Image tab content
     imageInfoPanel = new TableDataPanel(imageTab);
     wxBoxSizer* imageSizer = new wxBoxSizer(wxVERTICAL);
-    imageSizer->Add(imageInfoPanel, 1, wxEXPAND | wxALL, 5); // Adjusted to expand
+    imageSizer->Add(imageInfoPanel, 1, wxEXPAND | wxALL, 0);
     imageTab->SetSizer(imageSizer);
 
     // EXIF tab content
     exifMetadataPanel = new TableDataPanel(exifTab);
     wxBoxSizer* exifSizer = new wxBoxSizer(wxVERTICAL);
-    exifSizer->Add(exifMetadataPanel, 1, wxEXPAND | wxALL, 5);
+    exifSizer->Add(exifMetadataPanel, 1, wxEXPAND | wxALL, 0);
     exifTab->SetSizer(exifSizer);
 
     // File tab content
     fileInfoPanel = new TableDataPanel(fileTab);
     wxBoxSizer* fileSizer = new wxBoxSizer(wxVERTICAL);
-    fileSizer->Add(fileInfoPanel, 1, wxEXPAND | wxALL, 5);
+    fileSizer->Add(fileInfoPanel, 1, wxEXPAND | wxALL, 0);
     fileTab->SetSizer(fileSizer);
 }
 

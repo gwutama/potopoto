@@ -32,8 +32,8 @@ ImageEditor::ImageEditor(wxWindow *parent, std::shared_ptr<ImagePreview> imagePr
     comboSizer->Add(zoomComboBox, 0, wxALIGN_CENTER | wxALL, 5);
     comboSizer->Add(zoomLabel, 0, wxALIGN_CENTER | wxALL, 5);
 
-    sizer->Add(imageCanvas, 1, wxEXPAND | wxALL, 5);
-    sizer->Add(comboSizer, 0, wxALIGN_CENTER | wxALL, 5);
+    sizer->Add(imageCanvas, 1, wxEXPAND | wxALL, 0);
+    sizer->Add(comboSizer, 0, wxALIGN_CENTER | wxALL, 0);
 
     SetSizerAndFit(sizer);
 
