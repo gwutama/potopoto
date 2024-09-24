@@ -41,4 +41,11 @@ void ImageAdjustmentsPanel::CreateTabs() {
 
     // Apply the sizer to the globalTab
     globalTab->SetSizer(layerAdjustmentsSizer);
+
+    wxPanel* filterTab = new wxPanel(imageAdjustmentsTabs);
+    imageAdjustmentsTabs->AddPage(filterTab, "Filter");
+    filterAdjustmentsPanel = new FilterAdjustmentsPanel(filterTab);
+    wxBoxSizer* filterAdjustmentsSizer = new wxBoxSizer(wxVERTICAL);
+    filterAdjustmentsSizer->Add(filterAdjustmentsPanel, 1, wxEXPAND | wxALL, 10);
+    filterTab->SetSizer(filterAdjustmentsSizer);
 }

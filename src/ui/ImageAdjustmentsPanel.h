@@ -4,6 +4,7 @@
 #include <wx/wx.h>
 #include <wx/notebook.h>
 #include "LayerAdjustmentsPanel.h"
+#include "FilterAdjustmentsPanel.h"
 
 class ImageAdjustmentsPanel : public wxPanel {
 public:
@@ -13,6 +14,7 @@ public:
 private:
     wxNotebook* imageAdjustmentsTabs;
     LayerAdjustmentsPanel* layerAdjustmentsPanel;
+    FilterAdjustmentsPanel* filterAdjustmentsPanel;
 
     void CreateTabs();
 };

@@ -48,6 +48,9 @@ endif()
 
 # Define the source files
 set(SRC_FILES
+        ui/AbstractFilterPanel.cpp
+        ui/BlurFilterPanel.cpp
+        ui/FilterAdjustmentsPanel.cpp
         ui/HistogramCanvas.cpp
         ui/ImageCanvas.cpp
         ui/ImageEditor.cpp
@@ -76,6 +79,7 @@ set(SRC_FILES
         LayerWhiteBalance.cpp
         main.mm
         MetadataReader.cpp
+        Utils.cpp
 )
 
 # Include directories
