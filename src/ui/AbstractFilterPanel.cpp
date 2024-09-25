@@ -14,8 +14,10 @@ void AbstractFilterPanel::InitializeControls() {
     // Collapsible pane to hold the filter controls
     collapsiblePane = new wxCollapsiblePane(this, wxID_ANY, GetName());
 
-    // Add the remove button inside the collapsible pane's content
+    // Add buttons inside the collapsible pane's content
     removeButton = new wxButton(collapsiblePane->GetPane(), wxID_ANY, "Remove");
+    moveUpButton = new wxButton(collapsiblePane->GetPane(), wxID_ANY, "Move Up");
+    moveDownButton = new wxButton(collapsiblePane->GetPane(), wxID_ANY, "Move Down");
 
     // Call derived class to add specific filter controls
     AddFilterControls(collapsiblePane->GetPane());
@@ -34,4 +36,38 @@ void AbstractFilterPanel::InitializeControls() {
 
     // Expand the collapsible pane by default
     collapsiblePane->Expand();
+}
+
+
+wxBoxSizer* AbstractFilterPanel::CreateButtonsSizer() {
+    // Create a horizontal sizer for the buttons
+    wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
+
+    // Add buttons to the sizer
+    buttonSizer->Add(removeButton, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 5);
+    buttonSizer->Add(moveUpButton, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 5);
+    buttonSizer->Add(moveDownButton, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 5);
+
+    return buttonSizer;
+}
+
+
+void AbstractFilterPanel::SetRemoveButtonClickCallback(const std::function<void(wxCommandEvent&)>& callback) {
+    removeButton->Bind(wxEVT_BUTTON, [callback](wxCommandEvent& event) {
+        callback(event);
+    });
+}
+
+
+void AbstractFilterPanel::SetMoveUpButtonClickCallback(const std::function<void(wxCommandEvent&)>& callback) {
+    moveUpButton->Bind(wxEVT_BUTTON, [callback](wxCommandEvent& event) {
+        callback(event);
+    });
+}
+
+
+void AbstractFilterPanel::SetMoveDownButtonClickCallback(const std::function<void(wxCommandEvent&)>& callback) {
+    moveDownButton->Bind(wxEVT_BUTTON, [callback](wxCommandEvent& event) {
+        callback(event);
+    });
 }

@@ -9,11 +9,19 @@ public:
     // Constructor
     AbstractFilterPanel(wxWindow* parent);
 
-    // Get the remove button to bind events externally
+    // Buttons to bind events externally
     wxButton* GetRemoveButton() const { return removeButton; }
+    wxButton* GetMoveUpButton() const { return moveUpButton; }
+    wxButton* GetMoveDownButton() const { return moveDownButton; }
+
+    void SetRemoveButtonClickCallback(const std::function<void(wxCommandEvent&)>& callback);
+    void SetMoveUpButtonClickCallback(const std::function<void(wxCommandEvent&)>& callback);
+    void SetMoveDownButtonClickCallback(const std::function<void(wxCommandEvent&)>& callback);
 
 protected:
     virtual void AddFilterControls(wxWindow* sizer) = 0;
+
+    wxBoxSizer* CreateButtonsSizer();
 
     virtual std::string GetName() = 0;
 
@@ -21,8 +29,10 @@ protected:
     void InitializeControls();
 
 protected:
-    wxCollapsiblePane* collapsiblePane;  // Collapsible pane for filter content
-    wxButton* removeButton;              // Button to remove the filter
+    wxCollapsiblePane* collapsiblePane;
+    wxButton* removeButton;
+    wxButton* moveUpButton;
+    wxButton* moveDownButton;
 };
 
 #endif // ABSTRACTFILTERPANEL_H

@@ -13,7 +13,9 @@ private:
     wxBoxSizer* filterSectionSizer;
 
     void OnAddFilter(wxCommandEvent& event);
-    void OnRemoveFilter(wxCommandEvent& event);
+    void OnRemoveButtonClicked(wxCommandEvent& event);
+    void OnMoveUpButtonClicked(wxCommandEvent& event);
+    void OnMoveDownButtonClicked(wxCommandEvent& event);
 };
 
 #endif //FILTERADJUSTMENTSPANEL_H

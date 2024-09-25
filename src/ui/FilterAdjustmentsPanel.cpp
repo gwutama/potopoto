@@ -63,31 +63,91 @@ void FilterAdjustmentsPanel::OnAddFilter(wxCommandEvent& event) {
         // Adjust the virtual size to fit the new contents
         FitInside();
 
-        // Bind the remove button event from the filter panel to the handler
-        filterPanel->Bind(wxEVT_BUTTON, &FilterAdjustmentsPanel::OnRemoveFilter, this);
+        filterPanel->SetRemoveButtonClickCallback([this](wxCommandEvent& event) {
+            OnRemoveButtonClicked(event);
+        });
+
+        filterPanel->SetMoveUpButtonClickCallback([this](wxCommandEvent& event) {
+            OnMoveUpButtonClicked(event);
+        });
+
+        filterPanel->SetMoveDownButtonClickCallback([this](wxCommandEvent& event) {
+            OnMoveDownButtonClicked(event);
+        });
     } else {
         wxMessageBox("Invalid filter type selected", "Error", wxOK | wxICON_ERROR);
     }
 }
 
-void FilterAdjustmentsPanel::OnRemoveFilter(wxCommandEvent& event) {
+
+void FilterAdjustmentsPanel::OnRemoveButtonClicked(wxCommandEvent& event) {
     // Get the button that triggered the event
     wxButton* removeButton = dynamic_cast<wxButton*>(event.GetEventObject());
-    if (removeButton) {
-        // Traverse through the filter panels and find which one contains the remove button
-        for (auto child : filterSectionSizer->GetChildren()) {
-            AbstractFilterPanel* filterPanel = dynamic_cast<AbstractFilterPanel*>(child->GetWindow());
-            if (filterPanel && filterPanel->GetRemoveButton() == removeButton) {
-                // Remove the panel from the sizer
-                filterSectionSizer->Detach(filterPanel);
-                filterPanel->Destroy();  // Destroy the panel
 
-                // Re-layout the sizer to reflect the changes
-                filterSectionSizer->Layout();
-                Layout(); // Make sure the entire panel is updated
-                FitInside();  // Adjust the virtual size after removal
-                break;
-            }
+    if (!removeButton) {
+        return;
+    }
+
+    // Traverse through the filter panels and find which one contains the remove button
+    for (auto child : filterSectionSizer->GetChildren()) {
+        AbstractFilterPanel* filterPanel = dynamic_cast<AbstractFilterPanel*>(child->GetWindow());
+        if (filterPanel && filterPanel->GetRemoveButton() == removeButton) {
+            // Remove the panel from the sizer
+            filterSectionSizer->Detach(filterPanel);
+            filterPanel->Destroy();  // Destroy the panel
+
+            // Re-layout the sizer to reflect the changes
+            filterSectionSizer->Layout();
+            Layout(); // Make sure the entire panel is updated
+            FitInside();  // Adjust the virtual size after removal
+            break;
+        }
+    }
+}
+
+
+void FilterAdjustmentsPanel::OnMoveUpButtonClicked(wxCommandEvent& event) {
+    wxButton* moveUpButton = dynamic_cast<wxButton*>(event.GetEventObject());
+
+    if (!moveUpButton) {
+        return;
+    }
+
+    for (size_t i = 0; i < filterSectionSizer->GetChildren().size(); ++i) {
+        AbstractFilterPanel* filterPanel = dynamic_cast<AbstractFilterPanel*>(filterSectionSizer->GetItem(i)->GetWindow());
+        if (filterPanel && filterPanel->GetMoveUpButton() == moveUpButton && i > 0) {
+            // Swap the current filter panel with the one above it
+            filterSectionSizer->Detach(filterPanel);
+            filterSectionSizer->Insert(i - 1, filterPanel, 0, wxEXPAND | wxALL, 5);
+
+            filterSectionSizer->Layout();
+            Layout();
+            FitInside();
+            break;
+        }
+    }
+}
+
+
+void FilterAdjustmentsPanel::OnMoveDownButtonClicked(wxCommandEvent& event) {
+    wxButton* moveDownButton = dynamic_cast<wxButton*>(event.GetEventObject());
+
+    if (!moveDownButton) {
+        return;
+    }
+
+    size_t childCount = filterSectionSizer->GetChildren().size();
+    for (size_t i = 0; i < childCount; ++i) {
+        AbstractFilterPanel* filterPanel = dynamic_cast<AbstractFilterPanel*>(filterSectionSizer->GetItem(i)->GetWindow());
+        if (filterPanel && filterPanel->GetMoveDownButton() == moveDownButton && i < childCount - 1) {
+            // Swap the current filter panel with the one below it
+            filterSectionSizer->Detach(filterPanel);
+            filterSectionSizer->Insert(i + 1, filterPanel, 0, wxEXPAND | wxALL, 5);
+
+            filterSectionSizer->Layout();
+            Layout();
+            FitInside();
+            break;
         }
     }
 }

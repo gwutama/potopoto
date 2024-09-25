@@ -37,10 +37,8 @@ void BlurFilterPanel::AddFilterControls(wxWindow* window) {
     // Add the sliderSizer to the sizer (sizer is passed from AbstractFilterPanel's InitializeControls)
     sizer->Add(sliderSizer, 0, wxEXPAND | wxALL, 5);
 
-    // Add remove button
-    wxBoxSizer* removeButtonSizer = new wxBoxSizer(wxHORIZONTAL);
-    removeButtonSizer->Add(removeButton, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 0);
-    sizer->Add(removeButtonSizer, 0, wxEXPAND | wxALL, 5);
+    // Add buttons
+    sizer->Add(CreateButtonsSizer(), 0, wxEXPAND | wxALL, 5);
 
     window->SetSizer(sizer);
     sizer->SetSizeHints(window);
