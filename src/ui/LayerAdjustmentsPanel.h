@@ -4,21 +4,21 @@
 #include <wx/wx.h>
 #include <map>
 #include "../AdjustmentsParameters.h"
+#include "IImageProcessingPanel.h"
 
 // TODO: Maybe use callbacks instead of events
 wxDECLARE_EVENT(EVT_ADJUSTMENT_SLIDER_VALUE_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ADJUSTMENT_SLIDER_MOUSE_RELEASED_VALUE_CHANGED, wxCommandEvent);
 
-class LayerAdjustmentsPanel : public wxPanel
+class LayerAdjustmentsPanel : public wxPanel, public IImageProcessingPanel
 {
 public:
     LayerAdjustmentsPanel(wxWindow* parent);
 
-    void Reset();
+    void Reset() override;
+    std::shared_ptr<IImageProcessingParameters> GetImageProcessingParametersFromUiControls() const override;
 
 private:
-    AdjustmentsParameters GetAdjustmentsParametersFromUiValues() const;
-
     void OnSliderChanged(wxCommandEvent& event);
     void OnSliderMouseReleased(wxMouseEvent& event);
 
@@ -56,7 +56,7 @@ private:
 
     std::map<wxSlider*, wxStaticText*> sliderToValueMap;  // Maps sliders to their value labels
 
-    AdjustmentsParameters adjustments_parameters;
+    std::shared_ptr<AdjustmentsParameters> adjustments_parameters;
 
 wxDECLARE_EVENT_TABLE();
 };

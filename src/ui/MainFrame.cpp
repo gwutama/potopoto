@@ -87,7 +87,7 @@ void MainFrame::OnClose(wxCommandEvent &event) {
 
 
 void MainFrame::OnAdjustmentSliderValueChanged(wxCommandEvent &event) {
-    auto adjustments = static_cast<AdjustmentsParameters *>(event.GetClientData());
+    auto adjustments = static_cast<std::shared_ptr<AdjustmentsParameters>*>(event.GetClientData());
 
     // Update visible region of the image
     editor->GetImagePreview()->AdjustParameters(*adjustments);

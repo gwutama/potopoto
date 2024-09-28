@@ -16,6 +16,8 @@ Image::Image(const std::shared_ptr<cv::UMat>& in_image) {
     highlight_adjustments_layer = std::make_shared<LayerHighlight>();
     cmyk_adjustments_layer = std::make_shared<LayerCmyk>();
 
+    parameters = std::make_shared<AdjustmentsParameters>();
+
     UpdateImageInfo();
 }
 
@@ -26,32 +28,32 @@ Image::~Image() {
 }
 
 
-void Image::AdjustParameters(const AdjustmentsParameters &parameters_in) {
+void Image::AdjustParameters(std::shared_ptr<AdjustmentsParameters> parameters_in) {
     if (parameters_in == parameters) {
         parameters_changed = false;
         return;
     }
 
-    brightness_contrast_adjustments_layer->SetBrightness(parameters_in.GetBrightness());
-    brightness_contrast_adjustments_layer->SetContrast(parameters_in.GetContrast());
+    brightness_contrast_adjustments_layer->SetBrightness(parameters_in->GetBrightness());
+    brightness_contrast_adjustments_layer->SetContrast(parameters_in->GetContrast());
 
-    hsv_adjustments_layer->SetHue(parameters_in.GetHue());
-    hsv_adjustments_layer->SetSaturation(parameters_in.GetSaturation());
-    hsv_adjustments_layer->SetValue(parameters_in.GetValue());
+    hsv_adjustments_layer->SetHue(parameters_in->GetHue());
+    hsv_adjustments_layer->SetSaturation(parameters_in->GetSaturation());
+    hsv_adjustments_layer->SetValue(parameters_in->GetValue());
 
-    lightness_adjustments_layer->SetLightness(parameters_in.GetLightness());
+    lightness_adjustments_layer->SetLightness(parameters_in->GetLightness());
 
-    white_balance_adjustments_layer->SetSaturationThreshold(parameters_in.GetWhiteBalanceSaturationThreshold());
+    white_balance_adjustments_layer->SetSaturationThreshold(parameters_in->GetWhiteBalanceSaturationThreshold());
 
-    gamma_adjustments_layer->SetGamma(parameters_in.GetGamma());
+    gamma_adjustments_layer->SetGamma(parameters_in->GetGamma());
 
-    shadow_adjustments_layer->SetShadow(parameters_in.GetShadow());
-    highlight_adjustments_layer->SetHighlight(parameters_in.GetHighlight());
+    shadow_adjustments_layer->SetShadow(parameters_in->GetShadow());
+    highlight_adjustments_layer->SetHighlight(parameters_in->GetHighlight());
 
-    cmyk_adjustments_layer->SetCyan(parameters_in.GetCyan());
-    cmyk_adjustments_layer->SetMagenta(parameters_in.GetMagenta());
-    cmyk_adjustments_layer->SetYellow(parameters_in.GetYellow());
-    cmyk_adjustments_layer->SetBlack(parameters_in.GetBlack());
+    cmyk_adjustments_layer->SetCyan(parameters_in->GetCyan());
+    cmyk_adjustments_layer->SetMagenta(parameters_in->GetMagenta());
+    cmyk_adjustments_layer->SetYellow(parameters_in->GetYellow());
+    cmyk_adjustments_layer->SetBlack(parameters_in->GetBlack());
 
     parameters = parameters_in;
     parameters_changed = true;

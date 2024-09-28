@@ -2,11 +2,10 @@
 #define ABSTRACTFILTERPANEL_H
 
 #include <wx/wx.h>
-#include <wx/collpane.h>  // Include for wxCollapsiblePane
+#include <wx/collpane.h>
 
 class AbstractFilterPanel : public wxPanel {
 public:
-    // Constructor
     AbstractFilterPanel(wxWindow* parent);
 
     // Buttons to bind events externally

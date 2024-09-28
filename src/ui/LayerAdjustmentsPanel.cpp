@@ -84,10 +84,11 @@ LayerAdjustmentsPanel::LayerAdjustmentsPanel(wxWindow *parent)
                        -100, 100, 0, nullptr);
 
     SetSizer(mainSizer);
+    Reset();
 }
 
 
-AdjustmentsParameters LayerAdjustmentsPanel::GetAdjustmentsParametersFromUiValues() const {
+std::shared_ptr<IImageProcessingParameters> LayerAdjustmentsPanel::GetImageProcessingParametersFromUiControls() const {
     AdjustmentsParameters params;
 
     // Translate brightness slider value to actual brightness value
@@ -174,7 +175,7 @@ AdjustmentsParameters LayerAdjustmentsPanel::GetAdjustmentsParametersFromUiValue
     float black = blackSlider->GetValue() / 100.0f;
     params.SetBlack(black);
 
-    return params;
+    return std::make_shared<AdjustmentsParameters>(params);
 }
 
 
@@ -187,10 +188,10 @@ void LayerAdjustmentsPanel::OnSliderChanged(wxCommandEvent &event) {
         sliderToValueMap[slider]->SetLabel(wxString::Format("%d", value));
     }
 
-    AdjustmentsParameters newAdjustmentsParameters = GetAdjustmentsParametersFromUiValues();
+    auto newParams = std::dynamic_pointer_cast<AdjustmentsParameters>(GetImageProcessingParametersFromUiControls());
 
-    if (newAdjustmentsParameters != adjustments_parameters) {
-        adjustments_parameters = newAdjustmentsParameters;
+    if (newParams != adjustments_parameters) {
+        adjustments_parameters = newParams;
 
         // Fire custom event to notify external listeners about the adjustment change
         wxCommandEvent evt(EVT_ADJUSTMENT_SLIDER_VALUE_CHANGED);
@@ -201,8 +202,6 @@ void LayerAdjustmentsPanel::OnSliderChanged(wxCommandEvent &event) {
 
 
 void LayerAdjustmentsPanel::OnSliderMouseReleased(wxMouseEvent &event) {
-    AdjustmentsParameters newAdjustmentsParameters = GetAdjustmentsParametersFromUiValues();
-
     // TODO: this is not good because it will always fire the event even if the values are the same
     // However adjustmentParameters has been set in OnSliderChanged. Find a way to avoid this.
     // Fire custom event to notify external listeners about the adjustment change
@@ -213,6 +212,7 @@ void LayerAdjustmentsPanel::OnSliderMouseReleased(wxMouseEvent &event) {
 
 
 void LayerAdjustmentsPanel::Reset() {
+    adjustments_parameters = std::make_shared<AdjustmentsParameters>();
     brightnessSlider->SetValue(0);
     contrastSlider->SetValue(0);
     hueSlider->SetValue(0);

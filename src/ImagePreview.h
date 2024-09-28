@@ -25,7 +25,7 @@ public:
     void LoadImage(const std::shared_ptr<Image>& in_image);
     void Reset();
 
-    void AdjustParameters(const AdjustmentsParameters& parameters_in);
+    void AdjustParameters(std::shared_ptr<AdjustmentsParameters> parameters_in);
     bool ApplyAdjustmentsForPreviewRegion(const cv::Rect& region);
     void ApplyAdjustmentsForAllLodsAsync(std::function<void()> successCallback);
 
@@ -55,7 +55,7 @@ private:
     std::shared_ptr<Image> partial_lod_image;
     LodLevel current_lod_level;
     std::map<LodLevel, cv::Size> lod_sizes;
-    AdjustmentsParameters parameters;
+    std::shared_ptr<AdjustmentsParameters> parameters;
 
     std::unordered_map<LodLevel, std::shared_ptr<ImageApplyAdjustmentsTask>> apply_adjustments_tasks;
     std::atomic<int> completedTasks;

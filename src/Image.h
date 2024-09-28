@@ -33,7 +33,7 @@ public:
 
     std::unordered_map<std::string, std::string> GetImageInfo() const { return image_info; }
 
-    void AdjustParameters(const AdjustmentsParameters& parameters_in);
+    void AdjustParameters(std::shared_ptr<AdjustmentsParameters> parameters_in);
 
     virtual bool ApplyAdjustments();
     virtual bool ApplyAdjustmentsRegion(const cv::Rect& region);
@@ -52,7 +52,7 @@ protected:
     std::shared_ptr<cv::UMat> adjusted_image;
     std::unordered_map<std::string, std::string> image_info;
 
-    AdjustmentsParameters parameters;
+    std::shared_ptr<AdjustmentsParameters> parameters;
     bool parameters_changed;
 
     std::shared_ptr<LayerBrightnessContrast> brightness_contrast_adjustments_layer;

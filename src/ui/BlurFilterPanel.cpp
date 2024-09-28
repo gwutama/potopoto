@@ -1,9 +1,22 @@
 #include "BlurFilterPanel.h"
 
+wxDEFINE_EVENT(EVT_FILTER_PARAMETERS_CHANGED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_FILTER_MOUSE_RELEASED, wxCommandEvent);
+
+
 BlurFilterPanel::BlurFilterPanel(wxWindow* parent)
         : AbstractFilterPanel(parent) {
     InitializeControls();
 }
+
+
+void BlurFilterPanel::Reset() {
+    slider->SetValue(0); // TODO: change me
+    valueLabel->SetLabel("0");
+
+    filterParameters = std::make_shared<BlurFilterParameters>();
+}
+
 
 void BlurFilterPanel::AddFilterControls(wxWindow* window) {
     const int defaultValue = 0; // TODO: change me
@@ -19,20 +32,18 @@ void BlurFilterPanel::AddFilterControls(wxWindow* window) {
     sliderSizer->Add(label, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
 
     // Slider
-    wxSlider* slider = new wxSlider(window, wxID_ANY, defaultValue, 0, 100, wxDefaultPosition,
-                                    wxDefaultSize, wxSL_HORIZONTAL);
+    slider = new wxSlider(window, wxID_ANY, defaultValue, 0, 100, wxDefaultPosition,
+                          wxDefaultSize, wxSL_HORIZONTAL);
     sliderSizer->Add(slider, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
 
     // Value
-    wxStaticText* valueLabel = new wxStaticText(window, wxID_ANY, wxString::Format("%d", defaultValue),
-                                                wxDefaultPosition, wxSize(30, -1), wxALIGN_RIGHT);
+    valueLabel = new wxStaticText(window, wxID_ANY, wxString::Format("%d", defaultValue),
+                                  wxDefaultPosition, wxSize(30, -1), wxALIGN_RIGHT);
     sliderSizer->Add(valueLabel, 0, wxALIGN_CENTER_VERTICAL);
 
-    // Bind the slider event to update the value label
-    slider->Bind(wxEVT_SLIDER, [valueLabel, slider](wxCommandEvent& event) {
-        // Update the value label with the current slider value
-        valueLabel->SetLabel(wxString::Format("%d", slider->GetValue()));
-    });
+
+    slider->Bind(wxEVT_SLIDER, &BlurFilterPanel::OnSliderChanged, this);
+    slider->Bind(wxEVT_LEFT_UP, &BlurFilterPanel::OnSliderMouseReleased, this);
 
     // Add the sliderSizer to the sizer (sizer is passed from AbstractFilterPanel's InitializeControls)
     sizer->Add(sliderSizer, 0, wxEXPAND | wxALL, 5);
@@ -42,4 +53,39 @@ void BlurFilterPanel::AddFilterControls(wxWindow* window) {
 
     window->SetSizer(sizer);
     sizer->SetSizeHints(window);
+}
+
+
+void BlurFilterPanel::OnSliderChanged(wxCommandEvent &event) {
+    auto changedSlider = dynamic_cast<wxSlider *>(event.GetEventObject());
+
+    if (!changedSlider) {
+        return;
+    }
+
+    // Update the value label with the current slider value
+    valueLabel->SetLabel(wxString::Format("%d", changedSlider->GetValue()));
+
+    auto newParams = std::dynamic_pointer_cast<BlurFilterParameters>(GetImageProcessingParametersFromUiControls());
+
+    if (newParams != filterParameters) {
+        filterParameters = newParams;
+        wxCommandEvent newEvent(EVT_FILTER_PARAMETERS_CHANGED);
+        newEvent.SetClientData(&filterParameters);
+        ProcessEvent(newEvent);
+    }
+}
+
+
+void BlurFilterPanel::OnSliderMouseReleased(wxMouseEvent &event) {
+    wxCommandEvent evt(EVT_FILTER_MOUSE_RELEASED);
+    wxPostEvent(this->GetParent(), evt);
+}
+
+
+std::shared_ptr<IImageProcessingParameters> BlurFilterPanel::GetImageProcessingParametersFromUiControls() const {
+    BlurFilterParameters parameters;
+    parameters.SetStrength(slider->GetValue());
+
+    return std::make_shared<BlurFilterParameters>(parameters);
 }

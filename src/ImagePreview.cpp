@@ -26,7 +26,7 @@ void ImagePreview::Reset() {
     partial_lod_image.reset();
     current_lod_level = LodLevel::LOW;
     lod_sizes.clear();
-    parameters.Reset();
+    parameters = std::make_shared<AdjustmentsParameters>();
     apply_adjustments_tasks.clear();
     completedTasks = 0;
 }
@@ -102,7 +102,7 @@ std::shared_ptr<cv::UMat> ImagePreview::ResizeImageLod(const std::shared_ptr<cv:
 }
 
 
-void ImagePreview::AdjustParameters(const AdjustmentsParameters& parameters_in) {
+void ImagePreview::AdjustParameters(std::shared_ptr<AdjustmentsParameters> parameters_in) {
     parameters = parameters_in;
     lod_images.at(LodLevel::LOW)->AdjustParameters(parameters);
     lod_images.at(LodLevel::MEDIUM)->AdjustParameters(parameters);

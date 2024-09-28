@@ -9,14 +9,15 @@
 #include "LayerShadow.h"
 #include "LayerHighlight.h"
 #include "LayerCmyk.h"
+#include "IImageProcessingParameters.h"
 
 
-class AdjustmentsParameters {
+class AdjustmentsParameters : public IImageProcessingParameters {
 public:
     AdjustmentsParameters() { Reset(); }
     ~AdjustmentsParameters() = default;
 
-    void Reset() {
+    void Reset() override {
         brightness = LayerBrightnessContrast::DEFAULT_BRIGHTNESS;
         contrast = LayerBrightnessContrast::DEFAULT_CONTRAST;
 
@@ -39,24 +40,26 @@ public:
         black = LayerCmyk::DEFAULT_BLACK;
     }
 
-    bool operator==(const AdjustmentsParameters& other) const {
-        return brightness == other.brightness &&
-               contrast == other.contrast &&
-               hue == other.hue &&
-               saturation == other.saturation &&
-               value == other.value &&
-               lightness == other.lightness &&
-               white_balance_saturation_threshold == other.white_balance_saturation_threshold &&
-               gamma == other.gamma &&
-               shadow == other.shadow &&
-               highlight == other.highlight &&
-               cyan == other.cyan &&
-               magenta == other.magenta &&
-               yellow == other.yellow &&
-               black == other.black;
+    bool operator==(const IImageProcessingParameters& other) const override {
+        const auto* otherParams = dynamic_cast<const AdjustmentsParameters*>(&other);
+        return otherParams &&
+               brightness == otherParams->brightness &&
+               contrast == otherParams->contrast &&
+               hue == otherParams->hue &&
+               saturation == otherParams->saturation &&
+               value == otherParams->value &&
+               lightness == otherParams->lightness &&
+               white_balance_saturation_threshold == otherParams->white_balance_saturation_threshold &&
+               gamma == otherParams->gamma &&
+               shadow == otherParams->shadow &&
+               highlight == otherParams->highlight &&
+               cyan == otherParams->cyan &&
+               magenta == otherParams->magenta &&
+               yellow == otherParams->yellow &&
+               black == otherParams->black;
     }
 
-    bool operator!=(const AdjustmentsParameters& other) const {
+    bool operator!=(const IImageProcessingParameters& other) const override {
         return !(*this == other);
     }
 
